@@ -1,0 +1,37 @@
+application: timeghost-app
+version: 1
+runtime: python27
+api_version: 1
+threadsafe: yes
+
+handlers:
+- url: /js
+  static_dir: js
+
+- url: /css
+  static_dir: css
+
+- url: /img
+  static_dir: img
+
+- url: /static
+  static_dir: static
+
+- url: /fonts
+  static_dir: fonts
+
+- url: /foundation-icons
+  static_dir: foundation-icons
+
+- url: /seed
+  script: main.app
+  login: admin
+
+- url: .*
+  script: main.app
+
+libraries:
+- name: jinja2
+  version: "2.6"
+- name: markupsafe
+  version: "0.15"
