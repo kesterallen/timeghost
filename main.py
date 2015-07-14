@@ -1,9 +1,11 @@
 """Main program for timeghost."""
 
-from flask import Flask, render_template, request, redirect
+from flask import Flask, render_template, request, redirect, make_response
 from google.appengine.ext import ndb
 import logging
 import json
+import StringIO
+import csv
 
 from Controller import EventSeeder, TimeGhostFactory, EVENTS_FILE
 from Model import Event, TimeGhost, TimeGhostError
@@ -55,6 +57,18 @@ def events_server(middle_key_or_date=None):
         return render_template('events.html', events=events, title=title)
     except TimeGhostError as err:
         return render_template('error.html', err=err), 404
+
+# All events, as a CSV
+@app.route('/file')
+def events_file_server():
+    si = StringIO.StringIO()
+    cw = csv.writer(si)
+    events = Event.get_earlier_than()
+    cw.writerows([(e.date, e.description) for e in events])
+    output = make_response(si.getvalue())
+    output.headers["Content-Disposition"] = "attachment; filename=events.csv"
+    output.headers["Content-type"] = "text/csv"
+    return output
 
 def form_for_now_middle(fieldname, form, description, do_events=False):
     """
