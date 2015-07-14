@@ -43,7 +43,7 @@ class Event(ndb.Model):
         return event
 
     @classmethod
-    def get_from_key_or_date(cls, kod):
+    def get_from_key_or_date(cls, kod, description=None):
         """
         If "key-or-date" input is a key, extract that event from the datastore.
         If it is a date, create a non-datastore Event from that date.
@@ -51,7 +51,7 @@ class Event(ndb.Model):
         try:
             event = ndb.Key(urlsafe=kod).get()
         except:
-            event = Event.build(kod)
+            event = Event.build(date_str=kod, description=description)
 
         if event is None:
             raise EventError("Something wrong in get_from_key_or_date(%s)", kod)
@@ -89,6 +89,36 @@ class Event(ndb.Model):
         event = Event.query().order(Event.date).get()
         logging.debug("get_earliest%s", event)
         return event
+
+    @classmethod
+    def get_events_in_range(cls, now, middle_kod):
+        """
+        Get the Events that ar valid timeghost.long_ago events for
+        middle=middle and now=now.
+        """
+        event = Event.get_from_key_or_date(middle_kod)
+        timeghost = TimeGhost(now=now, middle=event)
+        earliest_date = event.date - timeghost.now_td()
+
+        events = Event.query(
+                     ).filter(Event.date < event.date
+                     ).filter(Event.date > earliest_date
+                     ).order(-Event.date
+                     ).fetch()
+        return events
+
+    @classmethod
+    def get_earlier_than(cls, key_or_date=None):
+        if key_or_date:
+            event = Event.get_from_key_or_date(key_or_date)
+            events = Event.query(
+                         ).filter(Event.date < event.date
+                         ).order(-Event.date
+                         ).fetch()
+        else:
+            events = Event.query().order(-Event.date).fetch()
+
+        return events
 
     def __sub__(self, other):
         """Return the timedelta between two Events' .date attributes."""
@@ -216,20 +246,16 @@ class TimeGhost(object):
 
         return key
 
-    def safe_output(self, tmpl):
-        try:
-            outstr = tmpl.format(self)
-        except AttributeError as err:
-            print err
-            outstr = "This timeghost is incomplete (%s)" % err
-        return outstr
-
     @property
     def factoid(self):
         tmpl = "{0.display_prefix}{0.middle.description} "\
                "is closer to the {0.long_ago.description} "\
                "than {0.now.description}"
-        output = self.safe_output(tmpl)
+        try:
+            output = tmpl.format(self)
+        except AttributeError as err:
+            print err
+            output = "This timeghost is incomplete (%s)" % err
         return output
 
     def __repr__(self):
