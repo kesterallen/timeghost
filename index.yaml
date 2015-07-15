@@ -14,3 +14,9 @@ indexes:
   properties:
   - name: approved
   - name: date
+
+- kind: Event
+  properties:
+  - name: approved
+  - name: date
+    direction: desc

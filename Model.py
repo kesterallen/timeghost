@@ -114,7 +114,9 @@ class Event(ndb.Model):
         Get the Events that are valid timeghost.long_ago events for
         middle=middle and now=now.
         """
+        logging.debug('test1 %s', middle_kod)
         event = Event.get_from_key_or_date(middle_kod)
+        logging.debug('test2 %s', event)
         timeghost = TimeGhost(now=now, middle=event)
         earliest_date = event.date - timeghost.now_td()
 
@@ -151,7 +153,7 @@ class Event(ndb.Model):
         return cmp(self.date, other.date)
 
     def __repr__(self):
-        return "{0.description} ({0.date})".format(self)
+        return "{0.description} ({0.date}) {0.created_by} ({0.created_on}) {0.approved}".format(self)
 
     @property
     def legendstr(self):

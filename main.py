@@ -1,7 +1,7 @@
 """Main program for timeghost."""
 
 from flask import Flask, render_template, request, make_response
-from google.appengine.api import users
+from google.appengine.api import mail, users
 import logging
 import datetime
 import json
@@ -31,8 +31,10 @@ def fixup_events():
 # Add a single new event:
 @app.route('/add', methods=['POST', 'GET'])
 def add_event_server():
+    """Add a new event and email me that it was added, or draw the form to do so:"""
     try:
         user = users.get_current_user()
+        now = datetime.datetime.now()
 
         # parse the form input
         if request.method == "POST":
@@ -44,20 +46,27 @@ def add_event_server():
 
             event = Event.build(date_str=date_str,
                                 description=description,
-                                created_on=created_on,
+                                created_on=now,
                                 created_by=created_by,
                                 approved=approved)
             event.put()
+
+            mail.send_mail(
+                     sender="Kester Allen <kester@gmail.com>",
+                     to="Kester Allen <kester+timeghost@gmail.com>",
+                     subject="Event added",
+                     body="Event %s was added" % event)
+
             return render_template('events.html',
                                    events=[event],
                                    title="Added one event")
         # draw the form:
         else:
             if user:
-                text = "Login"
+                text = "Logout, %s" % user.nickname()
                 url = users.create_logout_url('/')
             else:
-                text = "Logout"
+                text = "Login"
                 url = users.create_login_url('/')
 
             return render_template('add.html', url=url, text=text)
