@@ -23,11 +23,15 @@ handlers:
 - url: /foundation-icons
   static_dir: foundation-icons
 
+- url: /add
+  script: main.app
+  login: required
+
 - url: /seed
   script: main.app
   login: admin
 
-- url: /add
+- url: /fixupevents
   script: main.app
   login: admin
 

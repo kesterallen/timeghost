@@ -1,8 +1,9 @@
 """Main program for timeghost."""
 
-from flask import Flask, render_template, request, redirect, make_response
-from google.appengine.ext import ndb
+from flask import Flask, render_template, request, make_response
+from google.appengine.api import users
 import logging
+import datetime
 import json
 import StringIO
 import csv
@@ -10,11 +11,60 @@ import csv
 from Controller import EventSeeder, TimeGhostFactory, EVENTS_FILE
 from Model import Event, TimeGhost, TimeGhostError
 
-
 app = Flask(__name__)
 app.config['DEBUG'] = True
 
-# Seed new events
+@app.route('/fixupevents')
+def fixup_events():
+    user = users.get_current_user()
+    now = datetime.datetime.now()
+
+    events = Event.query().filter(Event.created_by == None).fetch()
+    for event in events:
+        event.created_on = now
+        event.created_by = user
+        event.approved = True
+        event.put()
+    title = "Updated events to have created_on and created_by and approved"
+    return render_template('events.html', events=events, title=title)
+
+# Add a single new event:
+@app.route('/add', methods=['POST', 'GET'])
+def add_event_server():
+    try:
+        user = users.get_current_user()
+
+        # parse the form input
+        if request.method == "POST":
+            date_str = request.form['date_str']
+            description = request.form['description']
+            created_on = datetime.datetime.now()
+            created_by = user
+            approved = users.is_current_user_admin()
+
+            event = Event.build(date_str=date_str,
+                                description=description,
+                                created_on=created_on,
+                                created_by=created_by,
+                                approved=approved)
+            event.put()
+            return render_template('events.html',
+                                   events=[event],
+                                   title="Added one event")
+        # draw the form:
+        else:
+            if user:
+                text = "Login"
+                url = users.create_logout_url('/')
+            else:
+                text = "Logout"
+                url = users.create_login_url('/')
+
+            return render_template('add.html', url=url, text=text)
+    except TimeGhostError as err:
+        return render_template('error.html', err=err), 404
+
+# Seed new events from EVENTS_FILE
 @app.route('/seed')
 def seed_events_from_file(filename=EVENTS_FILE):
     try:
@@ -35,10 +85,10 @@ def events_json_server(middle_key_or_date=None):
     if request.method == "POST":
         middle_key_or_date = request.form['middle_event_key']
     events = Event.get_events_in_range(Event.now(), middle_key_or_date)
-    json_events= json.dumps(
-                 {'events': 
-                     [{'key': e.key.urlsafe(), 
-                       'description': e.description} for e in events]})
+    json_events = json.dumps(
+                  {'events':
+                      [{'key': e.key.urlsafe(),
+                        'description': e.description} for e in events]})
     return json_events
 
 @app.route('/events')
@@ -73,7 +123,7 @@ def events_file_server():
 def form_for_now_middle(fieldname, form, description, do_events=False):
     """
     Render a form, or the response to the form. Pulls out the specified fied
-    and uses that to generate a TimeGhost.middle. TimeGhost.now is Event.now(). 
+    and uses that to generate a TimeGhost.middle. TimeGhost.now is Event.now().
     """
     try:
         # Render requested timeghost
@@ -106,7 +156,7 @@ def chosen_event_pair():
         if request.method == "POST":
             now = Event.now()
 
-            middle_kod = request.form['middle'] 
+            middle_kod = request.form['middle']
             middle = Event.get_from_key_or_date(middle_kod)
 
             long_ago_kod = request.form['long_ago']

@@ -1,0 +1,48 @@
+<html>
+<head>
+    <meta charset="utf-8"/>
+    {% include 'parts/setup_header.html' %}
+
+</head>
+<body>
+    {% include 'parts/navbar.html' %}
+    <div class="row">
+        <div class="small-12">
+            <a href="{{url}}">{{text}}</a>
+        </div>
+        <div class="small-12 large-3 columns"><a href="/"><img src="/img/timeghost.png"/></a></div>
+        <div class="small-12 large-9 columns">
+            <form action="/add" method="POST">
+                <fieldset>
+                    <legend>Add a Timeghost Event</legend>
+                    <div class="row">
+                        <div class="small-12 columns">
+                            <label>Date in YYYY-MM-DD format:
+                                <input type="date" name="date_str" placeholder="1943-12-30"/>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="small-12 columns">
+                            <label>
+                                Text description of event:
+                                <input type="description" name="description"/>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="small-12 columns">
+                            <label>
+                                <input class="button" type="submit" name="Add Event"/>
+                            </label>
+                        </div>
+                    </div>
+
+                </fieldset>
+            </form>
+        </div>
+    </div>
+
+    {% include 'parts/footer.html' %}
+</body>
+</html>

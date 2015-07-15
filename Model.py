@@ -19,6 +19,9 @@ DATE_FORMATS = ['%Y-%m-%d %H:%M:%S',
 class Event(ndb.Model):
     date = ndb.DateTimeProperty(auto_now_add=True)
     description = ndb.StringProperty()
+    created_on = ndb.DateTimeProperty(auto_now_add=True)
+    created_by = ndb.UserProperty()
+    approved = ndb.BooleanProperty()
 
     @classmethod
     def _parse_date_str(cls, date_str):
@@ -26,7 +29,7 @@ class Event(ndb.Model):
         for fmt in DATE_FORMATS:
             try:
                 date = datetime.datetime.strptime(date_str, fmt)
-            except ValueError as err:
+            except ValueError:
                 pass
 
         if date is None:
@@ -35,11 +38,19 @@ class Event(ndb.Model):
         return date
 
     @classmethod
-    def build(cls, date_str, description=None):
+    def build(cls, date_str,
+                   description=None,
+                   created_on=None,
+                   created_by=None,
+                   approved=False):
         date = Event._parse_date_str(date_str)
         if description is None:
             description = "date '%s'" % date_str
-        event = Event(description=description, date=date)
+        event = Event(description=description,
+                      date=date,
+                      created_on=created_on,
+                      created_by=created_by,
+                      approved=approved)
         return event
 
     @classmethod
@@ -73,6 +84,7 @@ class Event(ndb.Model):
         events = Event.query(
                      ).filter(Event.date < before.date
                      ).filter(Event.date > earliest.date
+                     ).filter(Event.approved == True
                      ).fetch()
         event = random.choice(events)
         logging.debug("get_random %s %s", events, event)
@@ -80,20 +92,26 @@ class Event(ndb.Model):
 
     @classmethod
     def get_latest(cls):
-        event = Event.query().order(-Event.date).get()
+        event = Event.query(
+                    ).filter(Event.approved == True
+                    ).order(-Event.date
+                    ).get()
         logging.debug("get_latest %s", event)
         return event
 
     @classmethod
     def get_earliest(cls):
-        event = Event.query().order(Event.date).get()
+        event = Event.query(
+                    ).filter(Event.approved == True
+                    ).order(Event.date
+                    ).get()
         logging.debug("get_earliest%s", event)
         return event
 
     @classmethod
     def get_events_in_range(cls, now, middle_kod):
         """
-        Get the Events that ar valid timeghost.long_ago events for
+        Get the Events that are valid timeghost.long_ago events for
         middle=middle and now=now.
         """
         event = Event.get_from_key_or_date(middle_kod)
@@ -103,6 +121,7 @@ class Event(ndb.Model):
         events = Event.query(
                      ).filter(Event.date < event.date
                      ).filter(Event.date > earliest_date
+                     ).filter(Event.approved == True
                      ).order(-Event.date
                      ).fetch()
         return events
@@ -113,10 +132,14 @@ class Event(ndb.Model):
             event = Event.get_from_key_or_date(key_or_date)
             events = Event.query(
                          ).filter(Event.date < event.date
+                         ).filter(Event.approved == True
                          ).order(-Event.date
                          ).fetch()
         else:
-            events = Event.query().order(-Event.date).fetch()
+            events = Event.query(
+                         ).filter(Event.approved == True
+                         ).order(-Event.date
+                         ).fetch()
 
         return events
 
@@ -183,8 +206,8 @@ class TimeGhost(object):
         return self.now_td().days / 365.25
 
     def then_td(self):
-        td = self.middle - self.long_ago
-        return td
+        timedelta = self.middle - self.long_ago
+        return timedelta
 
     @property
     def then_td_years(self):
@@ -198,6 +221,7 @@ class TimeGhost(object):
 
         events = Event.query().filter(Event.date > wanted_date_earliest
                              ).filter(Event.date < self.middle.date
+                             ).filter(Event.approved == True
                              ).order(Event.date)
         try:
             logging.info("find_best_long_ago: looking for date > %s and < %s",
@@ -210,7 +234,7 @@ class TimeGhost(object):
                           wanted_date_earliest, self.middle.date)
                 event = random.choice(events.fetch())
             except IndexError as err:
-                logging.info("Nothing there either. Getting earliest.")
+                logging.info("Nothing there either. Getting earliest. '%s'" % err)
                 event = Event.get_earliest()
         except:
             raise TimeGhostError("can't find an event between %s and %s" %
@@ -232,8 +256,8 @@ class TimeGhost(object):
         try:
             event = getattr(self, which)
         except AttributeError as err:
-            logging.debug("No event '%s' in timeghost.key_url, returning None",
-                          which)
+            logging.debug("No event '%s' in timeghost.key_url, returning None. %s",
+                          which, err)
             return None
 
         try:
