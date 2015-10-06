@@ -1,6 +1,6 @@
 """Main program for timeghost."""
 
-from flask import Flask, render_template, request, make_response
+from flask import Flask, render_template, request, make_response, jsonify
 from google.appengine.api import mail, users
 import logging
 import datetime
@@ -13,6 +13,10 @@ from Model import Event, TimeGhost, TimeGhostError
 
 app = Flask(__name__)
 app.config['DEBUG'] = True
+
+@app.route('/raves')
+def show_testimonials():
+    return render_template('raves.html', timeghost='foo')
 
 @app.route('/fixupevents')
 def fixup_events():
@@ -31,7 +35,8 @@ def fixup_events():
 # Add a single new event:
 @app.route('/add', methods=['POST', 'GET'])
 def add_event_server():
-    """Add a new event and email me that it was added, or draw the form to do so:"""
+    """Add a new event and email me that it was added, or draw the form to 
+    do so:"""
     try:
         user = users.get_current_user()
         now = datetime.datetime.now()
@@ -69,7 +74,7 @@ def add_event_server():
                 text = "Login"
                 url = users.create_login_url('/')
 
-            return render_template('add.html', url=url, text=text)
+            return render_template('add.html', login_url=url, login_text=text)
     except TimeGhostError as err:
         return render_template('error.html', err=err), 404
 
@@ -78,7 +83,9 @@ def add_event_server():
 def seed_events_from_file(filename=EVENTS_FILE):
     try:
         events = EventSeeder.seed(filename=filename)
-        return render_template('events.html', events=events, title="New Seeded Events")
+        return render_template('events.html',
+                               events=events,
+                               title="New Seeded Events")
     except TimeGhostError as err:
         return render_template('error.html', err=err), 404
 
@@ -93,11 +100,15 @@ def events_json_server(middle_key_or_date=None):
     """
     if request.method == "POST":
         middle_key_or_date = request.form['middle_event_key']
-    events = Event.get_events_in_range(Event.now(), middle_key_or_date)
-    json_events = json.dumps(
-                  {'events':
-                      [{'key': e.key.urlsafe(),
-                        'description': e.description} for e in events]})
+    events = Event.get_events_in_range(Event.now(),
+                                       middle_key_or_date,
+                                       sort_asc=False)
+    events_in_dicts = [{'key': e.key.urlsafe(),
+                        'description': e.description,
+                        'date': "({0.year}-{0.month}-{0.day})".format(e.date),
+                            } for e in events]
+
+    json_events = json.dumps({'events': events_in_dicts})
     return json_events
 
 @app.route('/events')
@@ -230,6 +241,19 @@ def permalink_server(middle_key_urlsafe, long_ago_key_urlsafe=None):
     except TimeGhostError as err:
         return render_template('error.html', err=err), 404
 
+@app.route('/tj')
+def timeghost_json():
+    """JSON page: generate a random Timeghost and return it as a JSON object"""
+    now = Event.now()
+    middle = Event.get_random(before=now)
+    timeghost = TimeGhostFactory.build(now=now, middle=middle)
+    tg_dict = { 
+        'factoid':  timeghost.factoid,
+        'permalink':  timeghost.permalink
+    }
+    return jsonify(tg_dict)
+
+# Main page: generate a Timeghost and display it
 @app.route('/')
 @app.route('/<middle_date_str>')
 @app.route('/<middle_date_str>/<now_date_str>')

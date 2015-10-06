@@ -1,0 +1,38 @@
+<html>
+<head>
+    <meta charset="utf-8"/>
+    {% include 'parts/setup_header.html' %}
+</head>
+<body>
+    {% include 'parts/navbar.html' %}
+
+    <div class="row">
+        <div class="small-12 large-3 columns"><a href="/"><img src="/img/timeghost.png"/></a></div>
+        <div class="small-12 large-9 columns"><h1>Everybody Loves Timeghost</h1></div>
+    </div>
+
+    <div class="row">
+        <blockquote class="twitter-tweet" data-conversation="none" lang="en"><p lang="en" dir="ltr"><a href="https://twitter.com/timeghost_app">@timeghost_app</a> <a href="https://twitter.com/kesterallen">@kesterallen</a> This is terrible please stop I can feel myself dying.</p>&mdash; Ceil (@askceil) <a href="https://twitter.com/askceil/status/651471489091411968">October 6, 2015</a></blockquote>
+
+        <blockquote class="twitter-tweet" data-conversation="none" lang="en"><p lang="en" dir="ltr"><a href="https://twitter.com/timeghost_app">@timeghost_app</a> Oh God.</p>&mdash; Thundercloud Fatale (@CloudLilac) <a href="https://twitter.com/CloudLilac/status/649026902020227072">September 30, 2015</a></blockquote>
+
+        <blockquote class="twitter-tweet" data-conversation="none" lang="en"><p lang="und" dir="ltr">.<a href="https://twitter.com/timeghost_app">@timeghost_app</a> Gah!</p>&mdash; Sven Aas (@SvenAas) <a href="https://twitter.com/SvenAas/status/638807023702933504">September 1, 2015</a></blockquote>
+
+        <script async src="//platform.twitter.com/widgets.js" charset="utf-8"></script>
+    </div>
+
+    <div class="row">
+        <div class="small-12 columns">
+            <ul class="stack-for-small button-group">
+                <li><a class="button" href="/">Timeghost</a></li>
+                <li><a class="button" href="/b">Birthday</a></li>
+                <li><a class="button" href="/s">Specific</a></li>
+                <li><a class="button" href="/sb">Very specific</a></li>
+                <li><a class="button" href="/add">Add an Event</a></li>
+            </ul>
+        </div>
+    </div>
+
+    {% include 'parts/footer_tweetbutton.html' %}
+</body>
+</html>

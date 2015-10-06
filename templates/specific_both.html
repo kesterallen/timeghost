@@ -28,7 +28,7 @@
                 
                 // Populate the select
                 $.each(data_json.events, function(i, event) {
-                    var option = new Option(event.description, event.key);
+                    var option = new Option(event.description + ' ' + event.date, event.key);
                     $('#long_ago').append(option);
                 })
             }

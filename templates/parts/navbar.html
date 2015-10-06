@@ -1,7 +1,15 @@
-<nav class="top-bar" data-topbar role="navigation">
+<nav class="top-bar" data-topbar role="navigation" data-options="is_hover: false">
     <ul class="title-area">
         <li class="name">
             <h1>Timeghost</h1>
         </li>
     </ul>
+    <section class="top-bar-section">
+        <ul class="right">
+            <li><a href="/raves">User Testimonials</a></li>
+        {% if login_url %}
+            <li><a href="{{login_url}}">{{login_text}}</a></li>
+        {% endif %}
+        </ul>
+    </section>
 </nav>

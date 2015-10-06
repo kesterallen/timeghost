@@ -6,9 +6,15 @@ import logging
 from google.appengine.ext import ndb
 
 class TimeGhostError(ValueError):
+    """
+    Error class for TimeGhost actions.
+    """
     pass
 
 class EventError(TimeGhostError):
+    """
+    A specific Event error class.
+    """
     pass
 
 DATE_FORMATS = ['%Y-%m-%d %H:%M:%S',
@@ -17,6 +23,9 @@ DATE_FORMATS = ['%Y-%m-%d %H:%M:%S',
                 '%Y']
 
 class Event(ndb.Model):
+    """
+    The Event model.
+    """
     date = ndb.DateTimeProperty(auto_now_add=True)
     description = ndb.StringProperty()
     created_on = ndb.DateTimeProperty(auto_now_add=True)
@@ -81,6 +90,8 @@ class Event(ndb.Model):
             before - an Event
         """
         earliest = Event.get_earliest()
+        logging.info('BEFORE %s', before)
+        logging.info('EARLIEST %s', earliest)
         events = Event.query(
                      ).filter(Event.date < before.date
                      ).filter(Event.date > earliest.date
@@ -109,7 +120,7 @@ class Event(ndb.Model):
         return event
 
     @classmethod
-    def get_events_in_range(cls, now, middle_kod):
+    def get_events_in_range(cls, now, middle_kod, sort_asc=True):
         """
         Get the Events that are valid timeghost.long_ago events for
         middle=middle and now=now.
@@ -120,12 +131,16 @@ class Event(ndb.Model):
         timeghost = TimeGhost(now=now, middle=event)
         earliest_date = event.date - timeghost.now_td()
 
-        events = Event.query(
+        query = Event.query(
                      ).filter(Event.date < event.date
                      ).filter(Event.date > earliest_date
-                     ).filter(Event.approved == True
-                     ).order(-Event.date
-                     ).fetch()
+                     ).filter(Event.approved == True)
+        if sort_asc:
+            query = query.order(-Event.date)
+        else:
+            query = query.order(Event.date)
+
+        events = query.fetch()
         return events
 
     @classmethod
@@ -153,7 +168,12 @@ class Event(ndb.Model):
         return cmp(self.date, other.date)
 
     def __repr__(self):
-        return "{0.description} ({0.date}) {0.created_by} ({0.created_on}) {0.approved}".format(self)
+        return "%s (%s) %s (%s) %s" % (
+               (self.description,
+                self.date,
+                self.created_by,
+                self.created_on,
+                self.approved))
 
     @property
     def legendstr(self):
@@ -236,7 +256,8 @@ class TimeGhost(object):
                           wanted_date_earliest, self.middle.date)
                 event = random.choice(events.fetch())
             except IndexError as err:
-                logging.info("Nothing there either. Getting earliest. '%s'" % err)
+                logging.info("Nothing there either. Getting earliest. '%s'",
+                             err)
                 event = Event.get_earliest()
         except:
             raise TimeGhostError("can't find an event between %s and %s" %
@@ -258,8 +279,9 @@ class TimeGhost(object):
         try:
             event = getattr(self, which)
         except AttributeError as err:
-            logging.debug("No event '%s' in timeghost.key_url, returning None. %s",
-                          which, err)
+            logging.debug(
+                "No event '%s' in timeghost.key_url, returning None. %s",
+                which, err)
             return None
 
         try:
@@ -289,4 +311,14 @@ class TimeGhost(object):
     now: {0.now};
     middle: {0.middle};
     long_ago: {0.long_ago}""".format(self)
+
+    @property
+    def permalink(self):
+        return 'http://timeghost-app.appspot.com/p/' + \
+                   self.middle.key.urlsafe() + '/' +  \
+                   self.long_ago.key.urlsafe()
+
+
+
+
 

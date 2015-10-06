@@ -8,6 +8,9 @@ from Model import Event, TimeGhost, TimeGhostError
 EVENTS_FILE = 'events.csv'
 
 class EventSeeder(object):
+    """
+    Parse filename to create new Events. Existing Events are not duplicated.
+    """
     @classmethod
     def seed(cls, filename=None):
         """Add Events which don't already exist in the database."""
@@ -31,8 +34,15 @@ class EventSeeder(object):
         return events
 
 class TimeGhostFactory(object):
+    """
+    Create TimeGhost objects from triplets of events, or generate a complete
+    TimeGhost based on a partial TimeGhost.
+    """
     @classmethod
     def build(cls, now=None, middle=None, long_ago=None):
+        """
+        Create TimeGhost objects from triplets of events.
+        """
         timeghost_in = TimeGhost(now=now, middle=middle, long_ago=long_ago)
         timeghost = TimeGhostFactory.build_from_timeghost(timeghost_in)
         return timeghost

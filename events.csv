@@ -2,6 +2,7 @@
 2011-05-01 00:00:00,death of Osama bin Laden
 2007-06-29 00:00:00,release of the iPhone
 2005-09-29 00:00:00,Hurricane Katrina
+2003-11-02 00:00:00,"first episode of ""Arrested Development"""
 2003-05-01 00:00:00,"George Bush ""Mission Accomplished"" speech"
 2001-09-11 00:00:00,9/11 attacks
 1999-04-20 00:00:00,Columbine shooting
@@ -9,6 +10,7 @@
 1998-12-19 00:00:00,impeachment of Clinton
 1998-09-04 00:00:00,start of Google
 1998-01-01 00:00:00,"end of ""Seinfeld"""
+1997-03-10 00:00:00,premiere of Buffy the Vampire Slayer
 1997-01-01 00:00:00,"release of ""Harry Potter"""
 1996-04-01 00:00:00,arrest of the Unibomber
 1996-01-01 00:00:00,"publication of ""Game of Thrones"""
@@ -29,39 +31,40 @@
 1989-07-31 00:00:00,first Gameboy
 1989-07-05 00:00:00,"first episode of ""Seinfeld"""
 1989-03-23 00:00:00,Exxon Valdez oil spill
-1987-06-01 00:00:00,"movie ""Princess Bride"""
 1987-06-01 00:00:00,"movie ""Dirty Dancing"""
+1987-06-01 00:00:00,"movie ""Princess Bride"""
 1987-01-01 00:00:00,"first episode of ""Star Trek TNG"""
 1986-04-26 00:00:00,Chernobyl disaster
+1986-01-01 00:00:00,"movie ""Ferris Bueller's Day Off"""
 1986-01-01 00:00:00,song Walk Like an Egyptian
+1986-01-01 00:00:00,"release of ""You Give Love a Bad Name"" (Bon Jovi)"
 1986-01-01 00:00:00,"song ""Mandolin Rain"""
 1986-01-01 00:00:00,"movie ""Top Gun"""
-1986-01-01 00:00:00,"release of ""You Give Love a Bad Name"" (Bon Jovi)"
-1986-01-01 00:00:00,"movie ""Ferris Bueller's Day Off"""
+1985-09-13 00:00:00,release of the original Super Mario Brothers
 1985-01-01 00:00:00,"movie ""The Breakfast Club"""
 1985-01-01 00:00:00,"release of ""We Are The World"""
-1985-01-01 00:00:00,"release of ""Back to the Future"""
 1985-01-01 00:00:00,"release of ""The Goonies"""
-1984-01-01 00:00:00,"release of ""Born in the USA"""
-1984-01-01 00:00:00,"movie ""Nightmare on Elm Street"""
+1985-01-01 00:00:00,"release of ""Back to the Future"""
 1984-01-01 00:00:00,"release of ""Purple Rain"""
-1984-01-01 00:00:00,"movie ""Ghostbusters"""
-1984-01-01 00:00:00,"song ""Careless Whisper"""
-1984-01-01 00:00:00,"movie ""The Karate Kid"""
 1984-01-01 00:00:00,"release of ""The Terminator"""
+1984-01-01 00:00:00,"movie ""Ghostbusters"""
+1984-01-01 00:00:00,"movie ""Nightmare on Elm Street"""
+1984-01-01 00:00:00,"song ""Careless Whisper"""
+1984-01-01 00:00:00,"release of ""Born in the USA"""
+1984-01-01 00:00:00,"movie ""The Karate Kid"""
 1983-12-02 00:00:00,"release of the ""Thriller"" video"
 1983-01-01 00:00:00,"movie ""Return of the Jedi"""
 1983-01-01 00:00:00,"release of ""Uptown Girl"""
-1982-01-01 00:00:00,"movie ""Blade Runner"""
-1982-01-01 00:00:00,"movie ""E.T."""
 1982-01-01 00:00:00,start of Tom Brokaw as newscaster
+1982-01-01 00:00:00,"movie ""E.T."""
+1982-01-01 00:00:00,"movie ""Blade Runner"""
 1981-06-01 00:00:00,"release of ""Raiders of the Lost Ark"""
 1981-04-12 00:00:00,first Space Shuttle launch
-1981-01-01 00:00:00,launch of MTV
 1981-01-01 00:00:00,wedding of Prince Charles and Princess Di
+1981-01-01 00:00:00,launch of MTV
 1980-05-18 00:00:00,Mt St. Helens eruption
-1979-01-01 00:00:00,Three Mile Island disaster
 1979-01-01 00:00:00,introduction of Sony Walkman
+1979-01-01 00:00:00,Three Mile Island disaster
 1977-04-30 00:00:00,"release of ""Star Wars"""
 1977-01-01 00:00:00,death of Elvis
 1975-04-30 00:00:00,Fall of Saigon
@@ -71,6 +74,7 @@
 1972-06-17 00:00:00,Watergate break-in
 1972-01-01 00:00:00,reelection of Nixon
 1970-05-04 00:00:00,Kent State shootings 
+1970-05-04 00:00:00,Kent State shootings
 1970-01-01 00:00:00,breakup of the Beatles
 1969-07-21 00:00:00,first moon landing
 1968-04-04 00:00:00,MLK Jr's assassination
@@ -83,8 +87,8 @@
 1962-08-28 00:00:00,"Martin Luther King Jr's ""I Have A Dream"" speech"
 1961-01-20 00:00:00,"JFK's ""Ask not what your country can do for you."" speech"
 1960-01-01 00:00:00,first televised Presidential debates
-1957-01-01 00:00:00,launch of Sputnik
 1957-01-01 00:00:00,"publication of ""The Cat In The Hat"""
+1957-01-01 00:00:00,launch of Sputnik
 1957-01-01 00:00:00,"debut of ""Leave It To Beaver"""
 1955-12-01 00:00:00,refusal of Rosa Parks to give up her bus seat
 1955-04-15 00:00:00,opening of the first McDonald's
@@ -93,21 +97,23 @@
 1953-01-01 00:00:00,discovery of DNA
 1952-01-01 00:00:00,introduction of polio vaccine
 1950-01-01 00:00:00,"debut of the ""Peanuts"" comic strip"
-1945-01-01 00:00:00,end of WWII
 1945-01-01 00:00:00,Manhattan Project
+1945-01-01 00:00:00,end of WWII
+1940-01-01 00:00:00,battle of Britain
 1939-01-01 00:00:00,beginning of WWII
 1936-01-01 00:00:00,Olympics in Berlin under Hitler
 1933-01-01 00:00:00,first inauguration of FDR 
 1933-01-01 00:00:00,end of Prohibition
 1927-01-01 00:00:00,flight of Lindbergh across Atlantic
 1920-01-01 00:00:00,beginning of Prohibition
+1919-01-15 00:00:00,molasses flood in Boston
 1919-01-01 00:00:00,end of WWI
 1914-01-01 00:00:00,beginning of WWI
-1906-01-01 00:00:00,San Francisco earthquake
 1906-01-01 00:00:00,Cubs world series win
+1906-01-01 00:00:00,San Francisco earthquake
 1903-01-01 00:00:00,Wright brothers' first flight
 1865-01-01 00:00:00,assassination of Lincoln
-1863-01-01 00:00:00,Emancipation Proclamation
+1863-01-02 00:00:00,Emancipation Proclamation
 1861-01-01 00:00:00,beginning of the Civil War
 1852-01-01 00:00:00,publication of Uncle Tom's Cabin
 1815-01-01 00:00:00,defeat of Napolean at Waterloo

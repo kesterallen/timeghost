@@ -7,9 +7,6 @@
 <body>
     {% include 'parts/navbar.html' %}
     <div class="row">
-        <div class="small-12">
-            <a href="{{url}}">{{text}}</a>
-        </div>
         <div class="small-12 large-3 columns"><a href="/"><img src="/img/timeghost.png"/></a></div>
         <div class="small-12 large-9 columns">
             <form action="/add" method="POST">
@@ -17,8 +14,8 @@
                     <legend>Add a Timeghost Event</legend>
                     <div class="row">
                         <div class="small-12 columns">
-                            <label>Date in YYYY-MM-DD format:
-                                <input type="date" name="date_str" placeholder="1943-12-30"/>
+                            <label>Date in YYYY-MM-DD, YYYY-MM, or YYYY format:
+                                <input type="date" name="date_str" placeholder="1943-12-30 or 1943-12 or 1943"/>
                             </label>
                         </div>
                     </div>
@@ -26,15 +23,13 @@
                         <div class="small-12 columns">
                             <label>
                                 Text description of event:
-                                <input type="description" name="description"/>
+                                <input type="text" name="description" placeholder="Something happened"/>
                             </label>
                         </div>
                     </div>
                     <div class="row">
                         <div class="small-12 columns">
-                            <label>
-                                <input class="button" type="submit" name="Add Event"/>
-                            </label>
+                            <button class="button" type="submit" name="add">Add Event</button>
                         </div>
                     </div>
 
