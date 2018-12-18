@@ -204,6 +204,19 @@ def chosen_event_server():
     description = None
     return form_for_now_middle(fieldname, form, description, do_events=True)
 
+# Fight Club, I am Jack's old movie reference
+@app.route('/jack', methods=['POST', 'GET'])
+@app.route('/fight_club', methods=['POST', 'GET'])
+@app.route('/fc', methods=['POST', 'GET'])
+def fight_club_server():
+    """
+    Generate a timeghost for the release of Fight Club
+    """
+    now = Event.now()
+    fight_club = Event.get_from_key_or_date('ag9zfnRpbWVnaG9zdC1hcHByEgsSBUV2ZW50GICAgICG7IcKDA')
+    timeghost = TimeGhostFactory.build(now=now, middle=fight_club)
+    return render_template('fight_club.html', timeghost=timeghost)
+
 # Birthday
 @app.route('/birthday', methods=['POST', 'GET'])
 @app.route('/b', methods=['POST', 'GET'])
@@ -241,15 +254,16 @@ def permalink_server(middle_key_urlsafe, long_ago_key_urlsafe=None):
     except TimeGhostError as err:
         return render_template('error.html', err=err), 404
 
-@app.route('/tj')
+@app.route('/tweet')
 def timeghost_json():
     """JSON page: generate a random Timeghost and return it as a JSON object"""
     now = Event.now()
     middle = Event.get_random(before=now)
-    timeghost = TimeGhostFactory.build(now=now, middle=middle)
+    tg = TimeGhostFactory.build(now=now, middle=middle)
     tg_dict = { 
-        'factoid':  timeghost.factoid,
-        'permalink':  timeghost.permalink
+        'factoid':  tg.factoid,
+        'permalink':  tg.permalink,
+        'tweet':  "%s #timeghost %s" % (tg.factoid[:110], tg.permalink),
     }
     return jsonify(tg_dict)
 

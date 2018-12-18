@@ -9,7 +9,7 @@
 
     <div class="row">
         <div class="small-12 large-3 columns"><a href="/"><img src="/img/timeghost.png"/><span style="font-size: 3.5em; text-decoration: none; float: right;">TIMEGHOST</span></a></div>
-        <div class="small-12 large-9 columns"><h1>{{timeghost.factoid}}</h1></div>
+        <div class="small-12 large-9 columns"><h1>I am Jack's {{timeghost.now_td_years|round(1)}}-year-old movie reference.</h1></div>
     </div>
 
     <div class="row">
@@ -26,16 +26,6 @@
         </div>
     </div>
 
-    <div class="row small-centered">
-        <div class="small-12 columns">
-            {{timeghost.now.legendstr}}
-            <i class="fi-arrow-left"></i>{{timeghost.now_td_years|round(1)}} yrs<i class="fi-arrow-right"></i>
-            {{timeghost.middle.legendstr}}
-            <i class="fi-arrow-left"></i>{{timeghost.then_td_years|round(1)}} yrs<i class="fi-arrow-right"></i>
-            {{timeghost.long_ago.legendstr}}
-        </div>
-    </div>
-    
     {% include 'parts/footer_tweetbutton.html' %}
 </body>
 </html>
