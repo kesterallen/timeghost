@@ -213,7 +213,8 @@ def fight_club_server():
     Generate a timeghost for the release of Fight Club
     """
     now = Event.now()
-    fight_club = Event.get_from_key_or_date('ag9zfnRpbWVnaG9zdC1hcHByEgsSBUV2ZW50GICAgICG7IcKDA')
+    fight_club = Event.get_from_key_or_date(
+        'ag9zfnRpbWVnaG9zdC1hcHByEgsSBUV2ZW50GICAgICG7IcKDA')
     timeghost = TimeGhostFactory.build(now=now, middle=fight_club)
     return render_template('fight_club.html', timeghost=timeghost)
 
@@ -240,16 +241,14 @@ def permalink_server(middle_key_urlsafe, long_ago_key_urlsafe=None):
     only the middle event key is given.
     """
     try:
-        now = Event.now()
         middle = Event.get_from_key_or_date(middle_key_urlsafe)
         long_ago = None
 
         if long_ago_key_urlsafe is not None:
             long_ago = Event.get_from_key_or_date(long_ago_key_urlsafe)
 
-        timeghost = TimeGhostFactory.build(now=now,
-                                           middle=middle,
-                                           long_ago=long_ago)
+        now = Event.now()
+        timeghost = TimeGhostFactory.build(now=now, middle=mid, long_ago=long_ago)
         return render_template('timeghost.html', timeghost=timeghost)
     except TimeGhostError as err:
         return render_template('error.html', err=err), 404
@@ -262,8 +261,9 @@ def timeghost_json():
     tg = TimeGhostFactory.build(now=now, middle=middle)
     tg_dict = { 
         'factoid':  tg.factoid,
-        'permalink':  tg.permalink,
-        'tweet':  "%s #timeghost %s" % (tg.factoid[:110], tg.permalink),
+        'permalink':  tg.permalink_fullY_qualified,
+        'tweet':  "{} #timeghost {}".format(tg.factoid[:110], 
+            tg.permalink_fullY_qualified),
     }
     return jsonify(tg_dict)
 

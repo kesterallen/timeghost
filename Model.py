@@ -90,15 +90,12 @@ class Event(ndb.Model):
             before - an Event
         """
         earliest = Event.get_earliest()
-        logging.info('BEFORE %s', before)
-        logging.info('EARLIEST %s', earliest)
         events = Event.query(
                      ).filter(Event.date < before.date
                      ).filter(Event.date > earliest.date
                      ).filter(Event.approved == True
                      ).fetch()
         event = random.choice(events)
-        logging.debug("get_random %s %s", events, event)
         return event
 
     @classmethod
@@ -107,7 +104,6 @@ class Event(ndb.Model):
                     ).filter(Event.approved == True
                     ).order(-Event.date
                     ).get()
-        logging.debug("get_latest %s", event)
         return event
 
     @classmethod
@@ -116,7 +112,6 @@ class Event(ndb.Model):
                     ).filter(Event.approved == True
                     ).order(Event.date
                     ).get()
-        logging.debug("get_earliest%s", event)
         return event
 
     @classmethod
@@ -125,9 +120,7 @@ class Event(ndb.Model):
         Get the Events that are valid timeghost.long_ago events for
         middle=middle and now=now.
         """
-        logging.debug('test1 %s', middle_kod)
         event = Event.get_from_key_or_date(middle_kod)
-        logging.debug('test2 %s', event)
         timeghost = TimeGhost(now=now, middle=event)
         earliest_date = event.date - timeghost.now_td()
 
@@ -246,24 +239,17 @@ class TimeGhost(object):
                              ).filter(Event.approved == True
                              ).order(Event.date)
         try:
-            logging.info("find_best_long_ago: looking for date > %s and < %s",
-                      wanted_date_earliest, wanted_date_latest)
             good_range_events = events.filter(Event.date < wanted_date_latest)
             event = random.choice(good_range_events.fetch())
         except IndexError:
             try:
-                logging.info("Didn't find anyting. Trying between %s and %s",
-                          wanted_date_earliest, self.middle.date)
                 event = random.choice(events.fetch())
             except IndexError as err:
-                logging.info("Nothing there either. Getting earliest. '%s'",
-                             err)
                 event = Event.get_earliest()
         except:
             raise TimeGhostError("can't find an event between %s and %s" %
                       (self.middle.date, wanted_date_earliest))
 
-        logging.debug("find_best_long_ago: event = %s", event)
         return event
 
     def key_url(self, which='now'):
@@ -295,6 +281,15 @@ class TimeGhost(object):
         return key
 
     @property
+    def permalink(self):
+        return "/p/{}/{}".format(self.middle.key.urlsafe(), 
+            self.long_ago.key.urlsafe())
+
+    @property
+    def permalink_fullY_qualified(self):
+        return "https://timeghost-app.appspont.com{}".format(self.permalink)
+
+    @property
     def factoid(self):
         tmpl = "{0.display_prefix}{0.middle.description} "\
                "is closer to the {0.long_ago.description} "\
@@ -311,14 +306,4 @@ class TimeGhost(object):
     now: {0.now};
     middle: {0.middle};
     long_ago: {0.long_ago}""".format(self)
-
-    @property
-    def permalink(self):
-        return 'http://timeghost-app.appspot.com/p/' + \
-                   self.middle.key.urlsafe() + '/' +  \
-                   self.long_ago.key.urlsafe()
-
-
-
-
 
