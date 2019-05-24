@@ -6,15 +6,11 @@ import logging
 from google.appengine.ext import ndb
 
 class TimeGhostError(ValueError):
-    """
-    Error class for TimeGhost actions.
-    """
+    """ Error class for TimeGhost actions.  """
     pass
 
 class EventError(TimeGhostError):
-    """
-    A specific Event error class.
-    """
+    """ A specific Event error class.  """
     pass
 
 DATE_FORMATS = ['%Y-%m-%d %H:%M:%S',
@@ -23,9 +19,7 @@ DATE_FORMATS = ['%Y-%m-%d %H:%M:%S',
                 '%Y']
 
 class Event(ndb.Model):
-    """
-    The Event model.
-    """
+    """ The Event model.  """
     date = ndb.DateTimeProperty(auto_now_add=True)
     description = ndb.StringProperty()
     created_on = ndb.DateTimeProperty(auto_now_add=True)
@@ -42,7 +36,7 @@ class Event(ndb.Model):
                 pass
 
         if date is None:
-            raise EventError("Couldn't parse date '%s'" % date_str)
+            raise EventError("Couldn't parse date '{}'".format(date_str))
 
         return date
 
@@ -54,7 +48,7 @@ class Event(ndb.Model):
                    approved=False):
         date = Event._parse_date_str(date_str)
         if description is None:
-            description = "date '%s'" % date_str
+            description = "date '{}'".format(date_str)
         event = Event(description=description,
                       date=date,
                       created_on=created_on,
@@ -80,15 +74,13 @@ class Event(ndb.Model):
 
     @classmethod
     def now(cls):
-        event = Event(date=datetime.datetime.now(),
-                      description="today")
+        now = datetime.datetime.now()
+        event = Event(date=now, description="today")
         return event
 
     @classmethod
     def get_random(cls, before=None):
-        """Inputs:
-            before - an Event
-        """
+        """Inputs: before - an Event """
         earliest = Event.get_earliest()
         events = Event.query(
                      ).filter(Event.date < before.date
@@ -100,18 +92,12 @@ class Event(ndb.Model):
 
     @classmethod
     def get_latest(cls):
-        event = Event.query(
-                    ).filter(Event.approved == True
-                    ).order(-Event.date
-                    ).get()
+        event = Event.query().filter(Event.approved == True).order(-Event.date).get()
         return event
 
     @classmethod
     def get_earliest(cls):
-        event = Event.query(
-                    ).filter(Event.approved == True
-                    ).order(Event.date
-                    ).get()
+        event = Event.query().filter(Event.approved == True).order(Event.date).get()
         return event
 
     @classmethod
@@ -162,11 +148,11 @@ class Event(ndb.Model):
 
     def __repr__(self):
         return "%s (%s) %s (%s) %s" % (
-               (self.description,
+                self.description.encode('utf-8'),
                 self.date,
                 self.created_by,
                 self.created_on,
-                self.approved))
+                self.approved)
 
     @property
     def legendstr(self):
@@ -228,7 +214,7 @@ class TimeGhost(object):
     def then_td_years(self):
         return self.then_td().days / 365.25
 
-    def find_best_long_ago(self):
+    def find_best_long_ago(self, get_earliest=False):
         """Return the best long_ago event based on self.middle and self.now."""
 
         wanted_date_earliest = self.middle.date - self.now_td()
@@ -240,7 +226,10 @@ class TimeGhost(object):
                              ).order(Event.date)
         try:
             good_range_events = events.filter(Event.date < wanted_date_latest)
-            event = random.choice(good_range_events.fetch())
+            if get_earliest:
+                event = good_range_events.fetch()[0]
+            else:
+                event = random.choice(good_range_events.fetch())
         except IndexError:
             try:
                 event = random.choice(events.fetch())
@@ -265,9 +254,7 @@ class TimeGhost(object):
         try:
             event = getattr(self, which)
         except AttributeError as err:
-            logging.debug(
-                "No event '%s' in timeghost.key_url, returning None. %s",
-                which, err)
+            logging.debug("No event '%s' in key_url, %s", which, err)
             return None
 
         try:
@@ -277,7 +264,6 @@ class TimeGhost(object):
                           "timeghost.key_url, returning event.date",
                           which)
             return event.date.year
-
         return key
 
     @property
@@ -286,16 +272,18 @@ class TimeGhost(object):
             self.long_ago.key.urlsafe())
 
     @property
-    def permalink_fullY_qualified(self):
-        return "https://timeghost-app.appspont.com{}".format(self.permalink)
+    def permalink_fully_qualified(self):
+        return "https://timeghost-app.appspot.com{}".format(self.permalink)
 
     @property
     def factoid(self):
-        tmpl = "{0.display_prefix}{0.middle.description} "\
-               "is closer to the {0.long_ago.description} "\
-               "than {0.now.description}"
         try:
-            output = tmpl.format(self)
+            output = "%s%s is closer to the %s than %s" % (
+                self.display_prefix.encode('utf-8'),
+                self.middle.description.encode('utf-8'),
+                self.long_ago.description.encode('utf-8'),
+                self.now.description.encode('utf-8'),
+            )  
         except AttributeError as err:
             print err
             output = "This timeghost is incomplete (%s)" % err

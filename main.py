@@ -35,13 +35,12 @@ def fixup_events():
 # Add a single new event:
 @app.route('/add', methods=['POST', 'GET'])
 def add_event_server():
-    """Add a new event and email me that it was added, or draw the form to 
-    do so:"""
+    """ Add a new event, or draw the form to do so """
     try:
         user = users.get_current_user()
         now = datetime.datetime.now()
 
-        # parse the form input
+        # POST: parse the form input
         if request.method == "POST":
             date_str = request.form['date_str']
             description = request.form['description']
@@ -50,22 +49,21 @@ def add_event_server():
             approved = users.is_current_user_admin()
 
             event = Event.build(date_str=date_str,
-                                description=description,
-                                created_on=now,
-                                created_by=created_by,
-                                approved=approved)
+                description=description,
+                created_on=now,
+                created_by=created_by,
+                approved=approved)
             event.put()
 
             mail.send_mail(
-                     sender="Kester Allen <kester@gmail.com>",
-                     to="Kester Allen <kester+timeghost@gmail.com>",
-                     subject="Event added",
-                     body="Event %s was added" % event)
+                sender="Kester Allen <kester@gmail.com>",
+                to="Kester Allen <kester+timeghost@gmail.com>",
+                subject="Event added",
+                body="Event %s was added" % event)
 
-            return render_template('events.html',
-                                   events=[event],
-                                   title="Added one event")
-        # draw the form:
+            rt = render_template('events.html', events=[event], title="Added one event")
+
+        # GET: draw the form:
         else:
             if user:
                 text = "Logout, %s" % user.nickname()
@@ -74,9 +72,10 @@ def add_event_server():
                 text = "Login"
                 url = users.create_login_url('/')
 
-            return render_template('add.html', login_url=url, login_text=text)
+            rt = render_template('add.html', login_url=url, login_text=text)
     except TimeGhostError as err:
-        return render_template('error.html', err=err), 404
+        rt = render_template('error.html', err=err), 404
+    return rt
 
 # Seed new events from EVENTS_FILE
 @app.route('/seed')
@@ -119,11 +118,7 @@ def events_server(middle_key_or_date=None):
     """
     try:
         events = Event.get_earlier_than(middle_key_or_date)
-
-        title = "All Events"
-        if middle_key_or_date:
-            title = "Events before {0.description}".format(middle)
-
+        title = "Earlier Events" if middle_key_or_date else "All Events"
         return render_template('events.html', events=events, title=title)
     except TimeGhostError as err:
         return render_template('error.html', err=err), 404
@@ -140,7 +135,7 @@ def events_file_server():
     output.headers["Content-type"] = "text/csv"
     return output
 
-def form_for_now_middle(fieldname, form, description, do_events=False):
+def form_for_now_middle(fieldname, form, description, do_events=False, get_earliest=False):
     """
     Render a form, or the response to the form. Pulls out the specified fied
     and uses that to generate a TimeGhost.middle. TimeGhost.now is Event.now().
@@ -152,7 +147,7 @@ def form_for_now_middle(fieldname, form, description, do_events=False):
             middle_key_or_date = request.form[fieldname]
             middle = Event.get_from_key_or_date(middle_key_or_date, description)
 
-            timeghost = TimeGhostFactory.build(now=now, middle=middle)
+            timeghost = TimeGhostFactory.build(now=now, middle=middle, get_earliest=get_earliest)
             if not do_events:
                 timeghost.display_prefix = ""
 
@@ -204,6 +199,19 @@ def chosen_event_server():
     description = None
     return form_for_now_middle(fieldname, form, description, do_events=True)
 
+# Specific Event, oldest
+@app.route('/specific_worst', methods=['POST', 'GET'])
+@app.route('/sw', methods=['POST', 'GET'])
+def earliest_chosen_event_server():
+    """
+    Generate a timeghost for a user-selected event. The if block generates the
+    result, and the else block generates the request page.
+    """
+    fieldname = 'middle'
+    form = 'specific_worst.html'
+    description = None
+    return form_for_now_middle(fieldname, form, description, do_events=True, get_earliest=True)
+
 # Fight Club, I am Jack's old movie reference
 @app.route('/jack', methods=['POST', 'GET'])
 @app.route('/fight_club', methods=['POST', 'GET'])
@@ -248,8 +256,8 @@ def permalink_server(middle_key_urlsafe, long_ago_key_urlsafe=None):
             long_ago = Event.get_from_key_or_date(long_ago_key_urlsafe)
 
         now = Event.now()
-        timeghost = TimeGhostFactory.build(now=now, middle=mid, long_ago=long_ago)
-        return render_template('timeghost.html', timeghost=timeghost)
+        tg = TimeGhostFactory.build(now=now, middle=middle, long_ago=long_ago)
+        return render_template('timeghost.html', timeghost=tg)
     except TimeGhostError as err:
         return render_template('error.html', err=err), 404
 
@@ -259,11 +267,11 @@ def timeghost_json():
     now = Event.now()
     middle = Event.get_random(before=now)
     tg = TimeGhostFactory.build(now=now, middle=middle)
-    tg_dict = { 
+    tg_dict = {
         'factoid':  tg.factoid,
-        'permalink':  tg.permalink_fullY_qualified,
-        'tweet':  "{} #timeghost {}".format(tg.factoid[:110], 
-            tg.permalink_fullY_qualified),
+        'permalink':  tg.permalink_fully_qualified,
+        'tweet':  "{} #timeghost {}".format(tg.factoid[:110],
+            tg.permalink_fully_qualified),
     }
     return jsonify(tg_dict)
 
