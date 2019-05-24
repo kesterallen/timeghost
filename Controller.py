@@ -39,20 +39,20 @@ class TimeGhostFactory(object):
     TimeGhost based on a partial TimeGhost.
     """
     @classmethod
-    def build(cls, now=None, middle=None, long_ago=None):
+    def build(cls, now=None, middle=None, long_ago=None, get_earliest=False):
         """
         Create TimeGhost objects from triplets of events.
         """
         timeghost_in = TimeGhost(now=now, middle=middle, long_ago=long_ago)
-        timeghost = TimeGhostFactory.build_from_timeghost(timeghost_in)
+        timeghost = TimeGhostFactory.build_from_timeghost(timeghost_in, get_earliest=get_earliest)
         return timeghost
 
     @classmethod
-    def build_from_timeghost(cls, timeghost):
+    def build_from_timeghost(cls, timeghost, get_earliest=False):
         """Return a completed TimeGhost based on the partial TimeGhost
         request."""
 
-        logging.debug("TimeGhostFactory.build: %s", timeghost)
+        #logging.debug("TimeGhostFactory.build_from_timeghost: {}".format(timeghost))
 
         # Timeghost between now and a random event
         if timeghost.middle is None:
@@ -74,7 +74,7 @@ class TimeGhostFactory(object):
 
         logging.debug("TimeGhostFactory.build: %s", timeghost)
         try:
-            best_long_ago = timeghost.find_best_long_ago()
+            best_long_ago = timeghost.find_best_long_ago(get_earliest=get_earliest)
         except TimeGhostError:
             best_long_ago = Event.get_earliest()
         logging.debug("TimeGhostFactory.build: %s", best_long_ago)
