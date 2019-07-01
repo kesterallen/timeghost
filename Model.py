@@ -2,6 +2,7 @@
 import datetime
 import random
 import logging
+from string import ascii_letters, digits
 
 from google.appengine.ext import ndb
 
@@ -22,6 +23,7 @@ class Event(ndb.Model):
     """ The Event model.  """
     date = ndb.DateTimeProperty(auto_now_add=True)
     description = ndb.StringProperty()
+    short_url = ndb.StringProperty()
     created_on = ndb.DateTimeProperty(auto_now_add=True)
     created_by = ndb.UserProperty()
     approved = ndb.BooleanProperty()
@@ -54,18 +56,23 @@ class Event(ndb.Model):
                       created_on=created_on,
                       created_by=created_by,
                       approved=approved)
+        event.set_short_url()
         return event
 
     @classmethod
     def get_from_key_or_date(cls, kod, description=None):
         """
         If "key-or-date" input is a key, extract that event from the datastore.
+        If "key-or-date" input is a short_url, extract the matching event from the datastore.
         If it is a date, create a non-datastore Event from that date.
         """
         try:
             event = ndb.Key(urlsafe=kod).get()
-        except:
-            event = Event.build(date_str=kod, description=description)
+        except: # TODO: specific exception for key not found
+            try: # Try matching 'kod' to short_url
+                event = Event.query().filter(Event.short_url == kod).get()
+            except: # TODO: specific exception for no events found for this short_url
+                event = Event.build(date_str=kod, description=description)
 
         if event is None:
             raise EventError("Something wrong in get_from_key_or_date(%s)", kod)
@@ -76,6 +83,7 @@ class Event(ndb.Model):
     def now(cls):
         now = datetime.datetime.now()
         event = Event(date=now, description="today")
+        event.set_short_url()
         return event
 
     @classmethod
@@ -136,7 +144,6 @@ class Event(ndb.Model):
                          ).filter(Event.approved == True
                          ).order(-Event.date
                          ).fetch()
-
         return events
 
     def __sub__(self, other):
@@ -153,6 +160,12 @@ class Event(ndb.Model):
                 self.created_by,
                 self.created_on,
                 self.approved)
+
+    def set_short_url(self):
+        desc = self.description.lower().replace(' ', '-')
+        alnums = (ascii_letters + digits + '-')
+        short_url = "".join([c for c in desc if c in alnums])
+        self.short_url = short_url[:40]
 
     @property
     def legendstr(self):
@@ -258,22 +271,22 @@ class TimeGhost(object):
             return None
 
         try:
-            key = event.key.urlsafe()
+            #key = event.key.urlsafe()
+            #return key
+            return event.short_url
         except AttributeError as err:
             logging.debug("Event '%s' in doesn't have .key.urlsafe() in "
                           "timeghost.key_url, returning event.date",
                           which)
             return event.date.year
-        return key
 
     @property
     def permalink(self):
-        return "/p/{}/{}".format(self.middle.key.urlsafe(), 
-            self.long_ago.key.urlsafe())
+        return "/p/{}/{}".format(self.key_url('middle'), self.key_url('long_ago'))
 
     @property
     def permalink_fully_qualified(self):
-        return "https://timeghost-app.appspot.com{}".format(self.permalink)
+        return "https://timeg.host{}".format(self.permalink)
 
     @property
     def factoid(self):

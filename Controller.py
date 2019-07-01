@@ -52,8 +52,6 @@ class TimeGhostFactory(object):
         """Return a completed TimeGhost based on the partial TimeGhost
         request."""
 
-        #logging.debug("TimeGhostFactory.build_from_timeghost: {}".format(timeghost))
-
         # Timeghost between now and a random event
         if timeghost.middle is None:
             timeghost.middle = Event.get_random()
@@ -72,16 +70,12 @@ class TimeGhostFactory(object):
             raise TimeGhostError("bad case in TimeGhostFactory.build for %s",
                                  timeghost)
 
-        logging.debug("TimeGhostFactory.build: %s", timeghost)
         try:
             best_long_ago = timeghost.find_best_long_ago(get_earliest=get_earliest)
         except TimeGhostError:
             best_long_ago = Event.get_earliest()
-        logging.debug("TimeGhostFactory.build: %s", best_long_ago)
 
         output_timeghost = TimeGhost(now=timeghost.now,
                                      middle=timeghost.middle,
                                      long_ago=best_long_ago)
-        logging.debug("TimeGhostFactory.build: %s", output_timeghost)
         return output_timeghost
-

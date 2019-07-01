@@ -18,18 +18,23 @@ app.config['DEBUG'] = True
 def show_testimonials():
     return render_template('raves.html', timeghost='foo')
 
-@app.route('/fixupevents')
-def fixup_events():
-    user = users.get_current_user()
-    now = datetime.datetime.now()
+@app.route('/addshorturl')
+def addshorturl():
+    #user = users.get_current_user()
+    #now = datetime.datetime.now()
 
-    events = Event.query().filter(Event.created_by == None).fetch()
+    #events = Event.query().filter(Event.created_by == None).fetch()
+    #events = Event.query().filter(Event.short_url == None).fetch()
+    events = Event.query().fetch()
+    count = 0
     for event in events:
-        event.created_on = now
-        event.created_by = user
-        event.approved = True
-        event.put()
-    title = "Updated events to have created_on and created_by and approved"
+        count += 1
+        #event.created_on = now
+        #event.created_by = user
+        #event.approved = True
+        event.set_short_url()
+        #event.put() # TODO Uncomment to go live
+    title = "Updated %s events to add a short_url" % count
     return render_template('events.html', events=events, title=title)
 
 # Add a single new event:
@@ -53,6 +58,7 @@ def add_event_server():
                 created_on=now,
                 created_by=created_by,
                 approved=approved)
+            event.set_short_url()
             event.put()
 
             mail.send_mail(
@@ -190,10 +196,7 @@ def chosen_event_pair():
 @app.route('/specific', methods=['POST', 'GET'])
 @app.route('/s', methods=['POST', 'GET'])
 def chosen_event_server():
-    """
-    Generate a timeghost for a user-selected event. The if block generates the
-    result, and the else block generates the request page.
-    """
+    """ Generate a timeghost for a user-selected event.  """
     fieldname = 'middle'
     form = 'specific.html'
     description = None
@@ -201,12 +204,10 @@ def chosen_event_server():
 
 # Specific Event, oldest
 @app.route('/specific_worst', methods=['POST', 'GET'])
+@app.route('/sw/<middle_key_urlsafe>', methods=['POST', 'GET'])
 @app.route('/sw', methods=['POST', 'GET'])
 def earliest_chosen_event_server():
-    """
-    Generate a timeghost for a user-selected event. The if block generates the
-    result, and the else block generates the request page.
-    """
+    """ Generate a worst-case timeghost for a user-selected event.  """
     fieldname = 'middle'
     form = 'specific_worst.html'
     description = None
@@ -217,9 +218,7 @@ def earliest_chosen_event_server():
 @app.route('/fight_club', methods=['POST', 'GET'])
 @app.route('/fc', methods=['POST', 'GET'])
 def fight_club_server():
-    """
-    Generate a timeghost for the release of Fight Club
-    """
+    """ Generate a timeghost for the release of Fight Club """
     now = Event.now()
     fight_club = Event.get_from_key_or_date(
         'ag9zfnRpbWVnaG9zdC1hcHByEgsSBUV2ZW50GICAgICG7IcKDA')
@@ -230,10 +229,7 @@ def fight_club_server():
 @app.route('/birthday', methods=['POST', 'GET'])
 @app.route('/b', methods=['POST', 'GET'])
 def birthday_server():
-    """
-    Generate a timeghost for a user-selected birth year. The if block
-    generates the result, and the else block generates the request page.
-    """
+    """ Generate a timeghost for a user-selected birth year.  """
     fieldname = 'bday'
     form = 'birthday.html'
     description = "Your birthday"
