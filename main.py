@@ -202,9 +202,16 @@ def chosen_event_server():
     description = None
     return form_for_now_middle(fieldname, form, description, do_events=True)
 
-# Specific Event, oldest
+# Specific Event, timeghost with oldest long_ago, middle specified with URL
+@app.route('/sw/<short_url>')
+def earliest_event_by_short_url_server(short_url):
+    now = Event.now()
+    middle = Event.get_from_key_or_date(short_url)
+    timeghost = TimeGhostFactory.build(now=now, middle=middle, get_earliest=True)
+    return render_template('timeghost.html', timeghost=timeghost)
+
+# Specific Event, timeghost with oldest long_ago
 @app.route('/specific_worst', methods=['POST', 'GET'])
-@app.route('/sw/<middle_key_urlsafe>', methods=['POST', 'GET'])
 @app.route('/sw', methods=['POST', 'GET'])
 def earliest_chosen_event_server():
     """ Generate a worst-case timeghost for a user-selected event.  """
