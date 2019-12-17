@@ -143,11 +143,11 @@ def events_file_server():
 
 def form_for_now_middle(fieldname, form, description, do_events=False, get_earliest=False):
     """
-    Render a form, or the response to the form. Pulls out the specified fied
+    Render a form, or the response to the form. Pulls out the specified field
     and uses that to generate a TimeGhost.middle. TimeGhost.now is Event.now().
     """
     try:
-        # Render requested timeghost
+        # Render requested timeghost ('form' input seems to be ignored):
         if request.method == "POST":
             now = Event.now()
             middle_key_or_date = request.form[fieldname]
@@ -158,7 +158,7 @@ def form_for_now_middle(fieldname, form, description, do_events=False, get_earli
                 timeghost.display_prefix = ""
 
             return render_template('timeghost.html', timeghost=timeghost)
-        # draw the form:
+        # GET request; draw the form:
         else:
             events = None
             if do_events:
@@ -210,8 +210,7 @@ def earliest_chosen_event_server():
     """ Generate a worst-case timeghost for a user-selected event.  """
     fieldname = 'middle'
     form = 'specific_worst.html'
-    description = None
-    return form_for_now_middle(fieldname, form, description, do_events=True, get_earliest=True)
+    return form_for_now_middle(fieldname, form, description=None, do_events=True, get_earliest=True)
 
 # Fight Club, I am Jack's old movie reference
 @app.route('/jack', methods=['POST', 'GET'])
