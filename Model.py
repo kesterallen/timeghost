@@ -4,6 +4,7 @@ import random
 import logging
 from string import ascii_letters, digits
 
+from google.appengine.api import search
 from google.appengine.ext import ndb
 
 class TimeGhostError(ValueError):
@@ -155,7 +156,7 @@ class Event(ndb.Model):
         return cmp(self.date, other.date)
 
     def __repr__(self):
-        return "%s (%s) %s (%s) %s" % (
+        return "{} ({}) {} ({}) {}".format(
                 self.description.encode('utf-8'),
                 self.date,
                 self.created_by,
@@ -167,6 +168,17 @@ class Event(ndb.Model):
         alnums = (ascii_letters + digits + '-')
         short_url = "".join([c for c in desc if c in alnums])
         self.short_url = short_url[:40]
+
+    @property
+    def search_doc(self):
+        doc = search.Document(
+            doc_id = self.key.urlsafe(),
+            fields=[
+                search.TextField(name='description', value=self.description),
+                # TODO: search.DateField??
+            ],
+        )
+        return doc
 
     @property
     def legendstr(self):
@@ -217,12 +229,20 @@ class TimeGhost(object):
         return timedelta
 
     @property
+    def int_now_td_years(self):
+        return int(self.now_td_years)
+
+    @property
     def now_td_years(self):
         return self.now_td().days / 365.25
 
     def then_td(self):
         timedelta = self.middle - self.long_ago
         return timedelta
+
+    @property
+    def int_then_td_years(self):
+        return int(self.then_td_years)
 
     @property
     def then_td_years(self):
@@ -302,6 +322,16 @@ class TimeGhost(object):
             print err
             output = "This timeghost is incomplete (%s)" % err
         return output
+
+    @property
+    def verbose(self):
+      return "The {} is {} years before {} but only {} years after {}".format(
+          self.middle.legendstr,
+          self.int_now_td_years,
+          self.now.legendstr,
+          self.int_then_td_years,
+          self.long_ago.legendstr
+      )
 
     def __repr__(self):
         return """TimeGhost--

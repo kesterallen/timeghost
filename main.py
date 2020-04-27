@@ -1,7 +1,7 @@
 """Main program for timeghost."""
 
 from flask import Flask, render_template, request, make_response, jsonify
-from google.appengine.api import mail, users
+from google.appengine.api import mail, search, users
 import logging
 import datetime
 import json
@@ -11,8 +11,45 @@ import csv
 from Controller import EventSeeder, TimeGhostFactory, EVENTS_FILE
 from Model import Event, TimeGhost, TimeGhostError
 
+EVENT_SEARCH_INDEX = 'event_search_index'
+
 app = Flask(__name__)
 app.config['DEBUG'] = True
+
+# TODO: finish
+@app.route('/search')
+def event_search():
+    print("HI")
+    print("HI")
+    print("HI")
+    print("HI")
+    print("HI")
+    print("HI")
+    search_term = request.get('search_term')
+    import pdb; pdb.set_trace()
+    search_term = '"%s"' % search_term.replace('"', '')
+    search_term = search_term.encode('unicode-escape')
+
+    event_search_index = search.Index(EVENT_SEARCH_INDEX)
+    results = event_search_index.search(search_term)
+    logging.debug('search results are "{}"'.format(results))
+    events = [ndb.Key(urlsafe=r.doc_id).get() for r in results]
+    events = [e for e in events if e is not None]
+
+    return render_template('raves.html', timeghost='foo')
+
+@app.route('/addallsearchdocs')
+def add_all_search_docs():
+    event_search_index = search.Index(EVENT_SEARCH_INDEX)
+    events = Event.query().fetch()
+    count = 0
+    for event in events:
+        count += 1
+        doc = event.search_doc
+        event_search_index.put(doc)
+        #event.put() # TODO Uncomment to go live
+    title = "Updated {} events to add search doc".format(count)
+    return render_template('events.html', events=events, title=title)
 
 @app.route('/raves')
 def show_testimonials():
@@ -36,6 +73,15 @@ def addshorturl():
         #event.put() # TODO Uncomment to go live
     title = "Updated %s events to add a short_url" % count
     return render_template('events.html', events=events, title=title)
+
+## Approve all # TODO remove this
+#@app.route('/approve_all', methods=['POST', 'GET'])
+#def approve_all():
+    #events = Event.query().fetch()
+    #for event in events:
+        #event.approved = True
+        #event.put()
+    #return "HI"
 
 # Add a single new event:
 @app.route('/add', methods=['POST', 'GET'])
@@ -276,6 +322,34 @@ def timeghost_json():
             tg.permalink_fully_qualified),
     }
     return jsonify(tg_dict)
+
+# Fast Main page: generate a Timeghost and display it
+@app.route('/f/')
+@app.route('/f/<middle_date_str>')
+@app.route('/f/<middle_date_str>/<now_date_str>')
+def fast_timeghost_server(middle_date_str=None, now_date_str=None):
+    """
+    Generates a random timeghost, a timeghost between now and a particular
+    time, or a timeghost between two specified times, depending on the number
+    of arguments given.
+    """
+    try:
+        if now_date_str is None:
+            now = Event.now()
+        else:
+            now = Event.build(date_str=now_date_str)
+
+        if middle_date_str is None:
+            middle = Event.get_random(before=now)
+        else:
+            middle = Event.build(date_str=middle_date_str)
+
+        timeghost = TimeGhostFactory.build(now=now, middle=middle)
+        logging.debug("output timeghost: %s", timeghost)
+
+        return render_template('fast/timeghost.html', timeghost=timeghost)
+    except TimeGhostError as err:
+        return render_template('fast/error.html', err=err), 404
 
 # Main page: generate a Timeghost and display it
 @app.route('/')

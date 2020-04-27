@@ -1,0 +1,41 @@
+<html>
+<head>
+  {% include 'fast/head_includes.html' %}
+</head>
+
+<body>
+
+  <div class="wrapper">
+
+    <div class="timeghost-head">
+      <a href="/"><h1>Timeghost</h1></a>
+    </div>
+
+    <div class="timeghost-content">
+      <h2>{{timeghost.factoid}}.</h2>
+      {% include 'fast/buttons.html' %}
+    </div>
+
+    <div class="timeghost-sidebar">
+      <a href="/"><img src="/img/timeghost.png"/></a>
+      {{timeghost.verbose}}
+      <hr/>
+      {% include 'fast/footer.html' %}
+    </div>
+
+    <div class="timeghost-footer">
+			<p>
+				The word "Timeghost" and the Timeghost image are created by Randall Munroe,
+				author of <a href="https://xkcd.com/1393/">XKCD</a>.
+			</p>
+
+			<p>
+				Timeghost tweets at <a href="http://www.twitter.com/timeghost_app">
+				@timeghost_app</a>. Site by <a href="http://www.twitter.com/@kesterallen">Kester Allen</a>.
+			</p>
+    </div>
+
+  </div>
+
+</body>
+</html>
