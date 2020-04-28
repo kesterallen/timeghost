@@ -325,7 +325,7 @@ class TimeGhost(object):
 
     @property
     def verbose(self):
-      return "The {} is {} years before {} but only {} years after {}".format(
+      return "The {} is {} years before the {} but only {} years after the {}".format(
           self.middle.legendstr,
           self.int_now_td_years,
           self.now.legendstr,
