@@ -1,42 +1,12 @@
-<html>
-<head>
-    <meta charset="utf-8"/>
-    {% include 'parts/setup_header.html' %}
-    {% include 'parts/sm_header.html' %}
-</head>
-<body>
-    {% include 'parts/navbar.html' %}
+{% extends 'fast/base.html' %}
 
-    <div class="row">
-        <div class="small-12 large-3 columns"><a href="/"><img src="/img/timeghost.png"/><span style="font-size: 3.5em; text-decoration: none; float: right;">TIMEGHOST</span></a></div>
-        <div class="small-12 large-9 columns"><h1>{{timeghost.factoid}}</h1></div>
-    </div>
+{% block content_block %}
+  <h2>{{timeghost.factoid}}.</h2>
+  {% include 'fast/buttons.html' %}
+{% endblock %}
 
-    <div class="row">
-        <div class="small-12 columns">
-            <ul class="stack-for-small button-group">
-                <li><a class="button" href="/p/{{timeghost.key_url('middle')}}">Similar</a></li>
-                <li><a class="button" href="/sw/{{timeghost.key_url('middle')}}">Worst Case</a></li>
-                <li><a class="button" href="/p/{{timeghost.key_url('middle')}}/{{timeghost.key_url('long_ago')}}">Permalink</a></li>
-                <li><a class="button" href="/b">Birthday</a></li>
-                <li><a class="button" href="/sb">Specific</a></li>
-                <li><a class="button" href="/sw">Worst</a></li>
-                <li><a class="button" href="/add">Add</a></li>
-                <li><a class="button" href="/raves">Testimonials</a></li>
-            </ul>
-        </div>
-    </div>
-
-    <div class="row small-centered">
-        <div class="small-12 columns">
-            {{timeghost.now.legendstr}}
-            <i class="fi-arrow-left"></i>{{timeghost.now_td_years|round(1)}} yrs<i class="fi-arrow-right"></i>
-            {{timeghost.middle.legendstr}}
-            <i class="fi-arrow-left"></i>{{timeghost.then_td_years|round(1)}} yrs<i class="fi-arrow-right"></i>
-            {{timeghost.long_ago.legendstr}}
-        </div>
-    </div>
-    
-    {% include 'parts/footer_tweetbutton.html' %}
-</body>
-</html>
+{% block sidebar_block %}
+  {{timeghost.verbose}}
+  <hr/>
+  <a href="{{timeghost.permalink_fully_qualified}}">Permalink</a>
+{% endblock %}

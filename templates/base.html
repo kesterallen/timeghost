@@ -1,0 +1,69 @@
+<html>
+
+<head>
+  <meta charset="utf-8"/>
+  <title>Timeghost</title>
+
+  <meta name="author" content="Kester Allen @kesterallen"/>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow:ital,wght@0,400;1,500&display=swap" rel="stylesheet">
+  <link rel="shortcut icon" href="/img/timeghost.png" type="image/x-icon">
+  <link rel="apple-touch-icon" href="/img/apple-touch-icon.png">
+  <link rel="stylesheet" href="/css/fast_style.css">
+
+  <!-- Twitter card & FB preview -->
+  <meta name="twitter:card"        content="summary_large_image">
+  <meta name="twitter:site"        content="@timeghost_app">
+  <meta name="twitter:creator"     content="@timeghost_app">
+  <meta name="twitter:title"       content="Timeghost: Making You Feel Old Since 2015">
+  <meta name="twitter:image"       content="http://timeg.host/img/timeghost_preview.png"/>
+  <meta property="og:title"        content="Timeghost: Making You Feel Old Since 2015"/>
+  <meta property="og:type"         content="website"/>
+  <meta property="fb:admins"       content="kesterallen"/>
+  <meta property="og:image"        content="http://timeg.host/img/timeghost_preview.png"/>
+  <meta property="og:site_name"    content="Timeghost Generator"/>
+  {% if timeghost %}
+    <meta property="og:url"          content="{{timeghost.permalink_fully_qualified}}"/>
+    <meta name="twitter:url"         content="{{timeghost.permalink_fully_qualified}}"/>
+    <meta property="og:description"  content="{{timeghost.factoid}} #timeghost">
+    <meta name="twitter:description" content="{{timeghost.factoid}} #timeghost">
+  {% endif %}
+
+  <!--<base target="_blank">-->
+  {% block header_block %}{% endblock %}
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+</head>
+
+<body>
+  <div class="wrapper">
+
+    <div class="timeghost-head">
+      <a href="/"><h1>Timeghost</h1></a>
+      {% block headline_block %}{% endblock %}
+    </div>
+
+    <div class="timeghost-content">
+      {% block content_block %}{% endblock %}
+    </div>
+
+    <div class="timeghost-sidebar">
+      <a href="/"><img src="/img/timeghost.png"/></a>
+      {% block sidebar_block %}{% endblock %}
+      <hr/>Read <a href="/raves">testimonials</a> from our beloved users.
+    </div>
+
+    <div class="timeghost-footer">
+      <p>
+        The word "Timeghost" and the Timeghost image are created by Randall Munroe,
+        author of <a href="https://xkcd.com/1393/">XKCD</a>.
+      </p>
+
+      <p>
+        Timeghost tweets at <a href="http://www.twitter.com/timeghost_app">
+        @timeghost_app</a>. Site by <a href="http://www.twitter.com/@kesterallen">Kester Allen</a>.
+      </p>
+    </div>
+
+  </div>
+</body>
+</html>

@@ -36,7 +36,7 @@ def event_search():
     events = [ndb.Key(urlsafe=r.doc_id).get() for r in results]
     events = [e for e in events if e is not None]
 
-    return render_template('raves.html', timeghost='foo')
+    return("HI")
 
 @app.route('/addallsearchdocs')
 def add_all_search_docs():
@@ -53,7 +53,7 @@ def add_all_search_docs():
 
 @app.route('/raves')
 def show_testimonials():
-    return render_template('raves.html', timeghost='foo')
+    return render_template('raves.html')
 
 @app.route('/addshorturl')
 def addshorturl():
@@ -74,14 +74,14 @@ def addshorturl():
     title = "Updated %s events to add a short_url" % count
     return render_template('events.html', events=events, title=title)
 
-## Approve all # TODO remove this
-#@app.route('/approve_all', methods=['POST', 'GET'])
-#def approve_all():
-    #events = Event.query().fetch()
-    #for event in events:
-        #event.approved = True
-        #event.put()
-    #return "HI"
+# Approve all # TODO remove this
+@app.route('/approve_all', methods=['POST', 'GET'])
+def approve_all():
+    events = Event.query().fetch()
+    for event in events:
+        event.approved = True
+        event.put()
+    return "HI"
 
 # Add a single new event:
 @app.route('/add', methods=['POST', 'GET'])
@@ -187,7 +187,7 @@ def events_file_server():
     output.headers["Content-type"] = "text/csv"
     return output
 
-def form_for_now_middle(fieldname, form, description, do_events=False, get_earliest=False):
+def form_for_now_middle(fieldname, form, description, do_events=False, get_earliest=False, events_birthday_years=False):
     """
     Render a form, or the response to the form. Pulls out the specified field
     and uses that to generate a TimeGhost.middle. TimeGhost.now is Event.now().
@@ -208,7 +208,11 @@ def form_for_now_middle(fieldname, form, description, do_events=False, get_earli
         else:
             events = None
             if do_events:
-                events = Event.query().order(-Event.date).fetch()
+                if events_birthday_years:
+                    year = datetime.date.today().year
+                    events = reversed(range(1900,year+1))
+                else:
+                    events = Event.query().order(-Event.date).fetch()
             return render_template(form, events=events)
     except TimeGhostError as err:
         return render_template('error.html', err=err), 404
@@ -285,7 +289,7 @@ def birthday_server():
     fieldname = 'bday'
     form = 'birthday.html'
     description = "Your birthday"
-    return form_for_now_middle(fieldname, form, description)
+    return form_for_now_middle(fieldname, form, description, do_events=True, events_birthday_years=True)
 
 # Permalinks
 @app.route('/p/<middle_key_urlsafe>')
@@ -324,38 +328,13 @@ def timeghost_json():
     return jsonify(tg_dict)
 
 # Fast Main page: generate a Timeghost and display it
-@app.route('/f/')
-@app.route('/f/<middle_date_str>')
-@app.route('/f/<middle_date_str>/<now_date_str>')
-def fast_timeghost_server(middle_date_str=None, now_date_str=None):
-    """
-    Generates a random timeghost, a timeghost between now and a particular
-    time, or a timeghost between two specified times, depending on the number
-    of arguments given.
-    """
-    try:
-        if now_date_str is None:
-            now = Event.now()
-        else:
-            now = Event.build(date_str=now_date_str)
-
-        if middle_date_str is None:
-            middle = Event.get_random(before=now)
-        else:
-            middle = Event.build(date_str=middle_date_str)
-
-        timeghost = TimeGhostFactory.build(now=now, middle=middle)
-        logging.debug("output timeghost: %s", timeghost)
-
-        return render_template('fast/timeghost.html', timeghost=timeghost)
-    except TimeGhostError as err:
-        return render_template('fast/error.html', err=err), 404
-
-# Main page: generate a Timeghost and display it
 @app.route('/')
 @app.route('/<middle_date_str>')
 @app.route('/<middle_date_str>/<now_date_str>')
-def timeghost_server(middle_date_str=None, now_date_str=None):
+@app.route('/')
+@app.route('/<middle_date_str>')
+@app.route('/<middle_date_str>/<now_date_str>')
+def fast_timeghost_server(middle_date_str=None, now_date_str=None):
     """
     Generates a random timeghost, a timeghost between now and a particular
     time, or a timeghost between two specified times, depending on the number
@@ -378,6 +357,7 @@ def timeghost_server(middle_date_str=None, now_date_str=None):
         return render_template('timeghost.html', timeghost=timeghost)
     except TimeGhostError as err:
         return render_template('error.html', err=err), 404
+
 
 @app.errorhandler(404)
 def page_not_found(err):

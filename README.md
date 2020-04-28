@@ -36,5 +36,8 @@ The URL timeg.host is managed through https://ap.www.namecheap.com/domains/list/
 Currently the redirect domain for timeg.host is pointed at https://timeghost-app.appspot.com/ via https://ap.www.namecheap.com/domains/domaincontrolpanel/timeg.host
 If that doesn't work try using the https://cloud.google.com/appengine/docs/standard/python/mapping-custom-domains page
 
+gcloud config set project timeghost-app
+gcloud app deploy
+
 ## Author
 [Kester Allen](http://twitter.com/@kesterallen)

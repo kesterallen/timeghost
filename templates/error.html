@@ -1,17 +1,5 @@
-<html>
-<head>
-    <meta charset="utf-8"/>
-    {% include 'parts/setup_header.html' %}
-</head>
-<body>
-    {% include 'parts/navbar.html' %}
+{% extends 'fast/base.html' %}
 
-    <div class="row">
-        <div class="small-12 columns"><a href="/"><img src="/img/timeghost.png"/></a></div>
-        <div class="small-12 columns"><h1>There's been an errrrrrooooOOOOOOooooooorrrrr!</h1></div>
-        <div class="small-12 columns">{{err}} {{info}}</div>
-    </div>
-
-    {% include 'parts/footer.html' %}
-</body>
-</html>
+{% block headline_block %}
+<h1>There's been an errrrrrooooOOOOOOooooooorrrrr!</h1>
+{% endblock %}
