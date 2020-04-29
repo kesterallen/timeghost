@@ -18,9 +18,6 @@ handlers:
 - url: /fonts
   static_dir: fonts
 
-- url: /foundation-icons
-  static_dir: foundation-icons
-
 - url: /add
   script: main.app
   login: required

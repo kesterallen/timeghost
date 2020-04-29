@@ -28,6 +28,16 @@
     <meta name="twitter:description" content="{{timeghost.factoid}} #timeghost">
   {% endif %}
 
+  <!-- Global site tag (gtag.js) - Google Analytics -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=UA-68117610-2"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'UA-68117610-2');
+  </script>
+
   <!--<base target="_blank">-->
   {% block header_block %}{% endblock %}
 
@@ -54,7 +64,7 @@
 
     <div class="timeghost-footer">
       <p>
-        The word "Timeghost" and the Timeghost image are created by Randall Munroe,
+        The word "Timeghost" and the Timeghost image are created by <a href="https://twitter.com/xkcd">Randall Munroe</a>,
         author of <a href="https://xkcd.com/1393/">XKCD</a>.
       </p>
 
