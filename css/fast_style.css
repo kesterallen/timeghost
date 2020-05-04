@@ -68,11 +68,11 @@ a:active {
   border: none;
   color: white;
 	width: 100%;
-  padding: 10px 0px;
+  padding: 5px 5px 5px 5px;
+  margin: 4px 2px;
   text-align: center;
   text-decoration: none;
   display: inline-block;
-  margin: 4px 2px;
   cursor: pointer;
 }
 .button:hover {
@@ -110,6 +110,6 @@ a:active {
    }
   .button {
     /*background-color: green;*/
-		width: 15%;
+		width: 5em;
   }
 }
