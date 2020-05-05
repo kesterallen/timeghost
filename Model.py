@@ -15,10 +15,18 @@ class EventError(TimeGhostError):
     """ A specific Event error class.  """
     pass
 
-DATE_FORMATS = ['%Y-%m-%d %H:%M:%S',
-                '%Y-%m-%d',
-                '%Y-%m',
-                '%Y']
+DATE_FORMATS = [
+    '%Y-%m-%d %H:%M:%S', # 2020-01-26 11:56:23
+    '%Y-%m-%d',          # 2020-01-26
+    '%Y-%m',             # 2020-01
+    '%Y',                # 2020
+    '%B %d, %Y',         # January 26, 2020
+    '%b %d, %Y',         # Jan 26, 2020
+    '%d %B %Y',          # 26 January 2020
+    '%d %b %Y',          # 26 Jan 2020
+    '%d %B, %Y',         # 26 January, 2020
+    '%d %b, %Y',         # 26 Jan, 2020
+]
 
 class Event(ndb.Model):
     """ The Event model.  """
@@ -69,15 +77,14 @@ class Event(ndb.Model):
         """
         try:
             event = ndb.Key(urlsafe=kod).get()
-        except: # TODO: specific exception for key not found
+        except Exception as err: # TODO: specific exception for key not found
             # Try matching 'kod' to short_url, construct a temp Event otherwise
             event = Event.query().filter(Event.short_url == kod).get()
             if event is None:
                 event = Event.build(date_str=kod, description=description)
 
         if event is None:
-            raise EventError(
-                "Something wrong in get_from_key_or_date ({})".format(kod))
+            raise EventError("Something wrong in get_from_key_or_date ({})".format(kod))
 
         return event
 

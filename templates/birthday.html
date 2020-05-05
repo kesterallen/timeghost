@@ -6,11 +6,6 @@ Timeghost your birthday!
 
 {% block content_block %}
   <form action="/b" method="POST">
-    <select name="bday" onchange="this.form.submit()">
-      <option value="">Birth Year</option>
-      {% for event in events %}
-        <option value="{{event}}">{{event}}</option>
-      {% endfor %}
-    </select>
+    <input name="bday" placeholder="Your birthday">
   </form>
 {% endblock %}

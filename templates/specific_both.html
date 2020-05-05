@@ -36,16 +36,17 @@
 
 {% block content_block %}
   <form action="/sb" method="POST">
-  <fieldset>
-    <legend>Make Your Own Timeghost!</legend>
-    <select id="middle" name="middle" onchange="populate_long_ago()">
-      <option value="2015-01-01">Select a middle event!</option>
+    <fieldset>
+      <legend>Make Your Own Timeghost!</legend>
+      <select id="middle" name="middle" onchange="populate_long_ago()">
+        <option value="2015-01-01">Select a middle event!</option>
         {% for event in events %}
           <option value="{{event.key.urlsafe()}}">{{event.description}} ({{event.date_ymd}})</option>
         {% endfor %}
       </select>
       <select id="long_ago" name="long_ago" onchange="this.form.submit()">
-      <option value="2015-01-01">Then choose a timeghost endpoint</option>
-    </select>
+        <option value="2015-01-01">Then choose a timeghost endpoint</option>
+      </select>
+    </fieldset>
   </form>
 {% endblock %}

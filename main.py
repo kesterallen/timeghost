@@ -99,7 +99,8 @@ def add_event_server():
             created_by = user
             approved = users.is_current_user_admin()
 
-            event = Event.build(date_str=date_str,
+            event = Event.build(
+                date_str=date_str,
                 description=description,
                 created_on=now,
                 created_by=created_by,
@@ -187,7 +188,7 @@ def events_file_server():
     output.headers["Content-type"] = "text/csv"
     return output
 
-def form_for_now_middle(fieldname, form, description, do_events=False, get_earliest=False, events_birthday_years=False):
+def form_for_now_middle(fieldname, form, description, do_events=False, get_earliest=False):
     """
     Render a form, or the response to the form. Pulls out the specified field
     and uses that to generate a TimeGhost.middle. TimeGhost.now is Event.now().
@@ -196,10 +197,14 @@ def form_for_now_middle(fieldname, form, description, do_events=False, get_earli
         # Render requested timeghost ('form' input seems to be ignored):
         if request.method == "POST":
             now = Event.now()
+            print("now", now)
             middle_key_or_date = request.form[fieldname]
+            print("middle_key_or_date", middle_key_or_date)
             middle = Event.get_from_key_or_date(middle_key_or_date, description)
+            print("middle", middle)
 
             timeghost = TimeGhostFactory.build(now=now, middle=middle, get_earliest=get_earliest)
+            print("timeghost", timeghost)
             if not do_events:
                 timeghost.display_prefix = ""
 
@@ -208,11 +213,7 @@ def form_for_now_middle(fieldname, form, description, do_events=False, get_earli
         else:
             events = None
             if do_events:
-                if events_birthday_years:
-                    year = datetime.date.today().year
-                    events = reversed(range(1900,year+1))
-                else:
-                    events = Event.query().order(-Event.date).fetch()
+                events = Event.query().order(-Event.date).fetch()
             return render_template(form, events=events)
     except TimeGhostError as err:
         return render_template('error.html', err=err), 404
@@ -289,7 +290,7 @@ def birthday_server():
     fieldname = 'bday'
     form = 'birthday.html'
     description = "Your birthday"
-    return form_for_now_middle(fieldname, form, description, do_events=True, events_birthday_years=True)
+    return form_for_now_middle(fieldname, form, description)
 
 # Permalinks
 @app.route('/p/<middle_key_urlsafe>')

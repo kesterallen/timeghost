@@ -1,16 +1,18 @@
 <div class="buttons">
   <a class="button"
-     title="Another random timeghost"
-     href="/">Another</a>
-  <a class="button"
-     title="Another timeghost with this event"
-     href="/p/{{timeghost.key_url('middle')}}">More</a>
-  <a class="button" 
-     title="Worst-case scendario for this event"
-     href="/sw/{{timeghost.key_url('middle')}}">Worse</a>
+     title="Random"
+     href="/">Yikes</a>
+  {% if timeghost %}
+    <a class="button"
+       title="Another timeghost with this event"
+       href="/p/{{timeghost.key_url('middle')}}">Another</a>
+    <a class="button" 
+       title="Worst-case scendario for this event"
+       href="/sw/{{timeghost.key_url('middle')}}">Stop</a>
+  {% endif %}
   <a class="button"
      title="Timeghost your birthday"
-     href="/b">Celebrate</a>
+     href="/b">Cake</a>
   <a class="button"
      title="Pick your perfect timeghost"
      href="/sb">Pick</a>
