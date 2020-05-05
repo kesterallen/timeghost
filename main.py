@@ -340,23 +340,24 @@ def fast_timeghost_server(middle_date_str=None, now_date_str=None):
     time, or a timeghost between two specified times, depending on the number
     of arguments given.
     """
-    try:
-        if now_date_str is None:
-            now = Event.now()
-        else:
-            now = Event.build(date_str=now_date_str)
-
-        if middle_date_str is None:
-            middle = Event.get_random(before=now)
-        else:
-            middle = Event.build(date_str=middle_date_str)
-
-        timeghost = TimeGhostFactory.build(now=now, middle=middle)
-        logging.debug("output timeghost: %s", timeghost)
-
-        return render_template('timeghost.html', timeghost=timeghost)
-    except TimeGhostError as err:
-        return render_template('error.html', err=err), 404
+    print("ehllo")
+#    try:
+#        if now_date_str is None:
+#            now = Event.now()
+#        else:
+#            now = Event.build(date_str=now_date_str)
+#
+#        if middle_date_str is None:
+#            middle = Event.get_random(before=now)
+#        else:
+#            middle = Event.build(date_str=middle_date_str)
+#
+#        timeghost = TimeGhostFactory.build(now=now, middle=middle)
+#        logging.debug("output timeghost: %s", timeghost)
+#
+#        return render_template('timeghost.html', timeghost=timeghost)
+#    except TimeGhostError as err:
+#        return render_template('error.html', err=err), 404
 
 
 @app.errorhandler(404)
