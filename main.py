@@ -197,14 +197,10 @@ def form_for_now_middle(fieldname, form, description, do_events=False, get_earli
         # Render requested timeghost ('form' input seems to be ignored):
         if request.method == "POST":
             now = Event.now()
-            print("now", now)
             middle_key_or_date = request.form[fieldname]
-            print("middle_key_or_date", middle_key_or_date)
             middle = Event.get_from_key_or_date(middle_key_or_date, description)
-            print("middle", middle)
 
             timeghost = TimeGhostFactory.build(now=now, middle=middle, get_earliest=get_earliest)
-            print("timeghost", timeghost)
             if not do_events:
                 timeghost.display_prefix = ""
 
@@ -247,7 +243,7 @@ def chosen_event_pair():
 @app.route('/specific', methods=['POST', 'GET'])
 @app.route('/s', methods=['POST', 'GET'])
 def chosen_event_server():
-    """ Generate a timeghost for a user-selected event.  """
+    """ Generate a timeghost for a user-selected event."""
     fieldname = 'middle'
     form = 'specific.html'
     description = None
@@ -265,7 +261,7 @@ def earliest_event_by_short_url_server(short_url):
 @app.route('/specific_worst', methods=['POST', 'GET'])
 @app.route('/sw', methods=['POST', 'GET'])
 def earliest_chosen_event_server():
-    """ Generate a worst-case timeghost for a user-selected event.  """
+    """ Generate a worst-case timeghost for a user-selected event."""
     fieldname = 'middle'
     form = 'specific_worst.html'
     return form_for_now_middle(fieldname, form, description=None, do_events=True, get_earliest=True)
@@ -284,13 +280,22 @@ def fight_club_server():
 
 # Birthday
 @app.route('/birthday', methods=['POST', 'GET'])
+@app.route('/birthday/<birthday_date>', methods=['POST', 'GET'])
 @app.route('/b', methods=['POST', 'GET'])
-def birthday_server():
-    """ Generate a timeghost for a user-selected birth year.  """
+@app.route('/b/<birthday_date>', methods=['POST', 'GET'])
+def birthday_server(birthday_date):
+    """ Generate a timeghost for a user-selected birth year."""
     fieldname = 'bday'
     form = 'birthday.html'
     description = "Your birthday"
-    return form_for_now_middle(fieldname, form, description)
+
+    if birthday_date:
+        middle = Event.get_from_key_or_date(birthday_date)
+        timeghost = TimeGhostFactory.build(now=Event.now(), middle=middle)
+        print(timeghost)
+        return render_template('timeghost.html', timeghost=timeghost)
+    else:
+        return form_for_now_middle(fieldname, form, description)
 
 # Permalinks
 @app.route('/p/<middle_key_urlsafe>')
@@ -320,12 +325,12 @@ def timeghost_json():
     now = Event.now()
     middle = Event.get_random(before=now)
     tg = TimeGhostFactory.build(now=now, middle=middle)
-    tg_dict = {
-        'factoid':  tg.factoid,
-        'permalink':  tg.permalink_fully_qualified,
-        'tweet':  "{} #timeghost {}".format(tg.factoid[:110],
-            tg.permalink_fully_qualified),
-    }
+    tg_dict = dict(
+        factoid=tg.factoid,
+        permalink=tg.permalink_fully_qualified,
+        tweet="{} #timeghost {}".format(
+            tg.factoid[:110], tg.permalink_fully_qualified),
+    )
     return jsonify(tg_dict)
 
 # Fast Main page: generate a Timeghost and display it
