@@ -30,6 +30,10 @@ handlers:
   script: main.app
   login: admin
 
+- url: /robots.txt
+  static_files: static/robots.txt
+  upload: static/robots.txt
+
 - url: .*
   script: main.app
 
