@@ -44,7 +44,7 @@ class TimeGhostFactory(object):
         Create TimeGhost objects from triplets of events.
         """
         timeghost_in = TimeGhost(now=now, middle=middle, long_ago=long_ago)
-        timeghost = TimeGhostFactory.build_from_timeghost(timeghost_in, get_earliest=get_earliest)
+        timeghost = TimeGhostFactory.build_from_timeghost(timeghost_in, get_earliest)
         return timeghost
 
     @classmethod
@@ -67,15 +67,13 @@ class TimeGhostFactory(object):
             return timeghost
         # Otherwise error
         else:
-            raise TimeGhostError("bad case in TimeGhostFactory.build for %s",
-                                 timeghost)
+            raise TimeGhostError(
+                "bad case in TimeGhostFactory.build for {}".format(timeghost))
 
         try:
-            best_long_ago = timeghost.find_best_long_ago(get_earliest=get_earliest)
+            long_ago = timeghost.find_best_long_ago(get_earliest)
         except TimeGhostError:
-            best_long_ago = Event.get_earliest()
+            long_ago = Event.get_earliest()
 
-        output_timeghost = TimeGhost(now=timeghost.now,
-                                     middle=timeghost.middle,
-                                     long_ago=best_long_ago)
+        output_timeghost = TimeGhost(timeghost.now, timeghost.middle, long_ago)
         return output_timeghost

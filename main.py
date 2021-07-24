@@ -253,7 +253,10 @@ def chosen_event_server():
 @app.route('/sw/<short_url>')
 def earliest_event_by_short_url_server(short_url):
     now = Event.now()
-    middle = Event.get_from_key_or_date(short_url)
+    try:
+        middle = Event.get_from_key_or_date(short_url)
+    except TimeGhostError as err:
+        raise TimeGhostError("timeghost doesn't know your birthday")
     timeghost = TimeGhostFactory.build(now=now, middle=middle, get_earliest=True)
     return render_template('timeghost.html', timeghost=timeghost)
 
@@ -283,7 +286,7 @@ def fight_club_server():
 @app.route('/birthday/<birthday_date>', methods=['POST', 'GET'])
 @app.route('/b', methods=['POST', 'GET'])
 @app.route('/b/<birthday_date>', methods=['POST', 'GET'])
-def birthday_server(birthday_date):
+def birthday_server(birthday_date=None):
     """ Generate a timeghost for a user-selected birth year."""
     fieldname = 'bday'
     form = 'birthday.html'
@@ -292,7 +295,6 @@ def birthday_server(birthday_date):
     if birthday_date:
         middle = Event.get_from_key_or_date(birthday_date)
         timeghost = TimeGhostFactory.build(now=Event.now(), middle=middle)
-        print(timeghost)
         return render_template('timeghost.html', timeghost=timeghost)
     else:
         return form_for_now_middle(fieldname, form, description)
@@ -307,6 +309,9 @@ def permalink_server(middle_key_urlsafe, long_ago_key_urlsafe=None):
     only the middle event key is given.
     """
     try:
+        if middle_key_urlsafe == 'your-birthday':
+            raise TimeGhostError("timeghost doesn't know your birthday")
+
         middle = Event.get_from_key_or_date(middle_key_urlsafe)
         long_ago = None
 

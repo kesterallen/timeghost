@@ -8,3 +8,5 @@ foundation-icons/
 js/
 lib/
 *un~
+.gcloudignore
+.gitignore

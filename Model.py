@@ -17,15 +17,23 @@ class EventError(TimeGhostError):
 
 DATE_FORMATS = [
     '%Y-%m-%d %H:%M:%S', # 2020-01-26 11:56:23
+    '%Y-%m-%d %H:%M',    # 2020-01-26 11:56
     '%Y-%m-%d',          # 2020-01-26
     '%Y-%m',             # 2020-01
     '%Y',                # 2020
+    '%Y %m %d %H:%M:%S', # 2020 01 26 11:56:23
+    '%Y %m %d',          # 2020 01 26
+    '%Y %m',             # 2020 01
     '%B %d, %Y',         # January 26, 2020
-    '%b %d, %Y',         # Jan 26, 2020
+    '%b %d %Y',          # Jan 26 2020
+    '%B %d, %Y',         # January 26, 2020
+    '%b %d %Y',          # Jan 26 2020
     '%d %B %Y',          # 26 January 2020
     '%d %b %Y',          # 26 Jan 2020
     '%d %B, %Y',         # 26 January, 2020
     '%d %b, %Y',         # 26 Jan, 2020
+    '%Y %d %B',          # 2020 26 January
+    '%Y %d %b',          # 2020 26 January
 ]
 
 class Event(ndb.Model):
@@ -332,13 +340,21 @@ class TimeGhost(object):
 
     @property
     def verbose(self):
-      return "The {} is {} years before the {} but only {} years after the {}".format(
-          self.middle.legendstr,
-          self.int_now_td_years,
-          self.now.legendstr,
-          self.int_then_td_years,
-          self.long_ago.legendstr
-      )
+        logging.debug("Self.middle.description: {}".format(self.middle.description))
+        if self.middle.description == 'Your birthday':
+          middle_text = "Your birthday"
+          now_text = "now"
+        else:
+          middle_text = "The {}".format(self.middle.legendstr)
+          now_text = "the {}".format(self.now.legendstr)
+
+        return "{} is {} years before {} but only {} years after the {}".format(
+            middle_text,
+            self.int_now_td_years,
+            now_text,
+            self.int_then_td_years,
+            self.long_ago.legendstr
+        )
 
     def __repr__(self):
         return """TimeGhost--
