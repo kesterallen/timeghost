@@ -348,13 +348,15 @@ class TimeGhost(object):
           middle_text = "The {}".format(self.middle.legendstr)
           now_text = "the {}".format(self.now.legendstr)
 
-        return "{} is {} years before {} but only {} years after the {}".format(
+        verbose_text = "{} is {:.1f} years before {} but only {:.1f} years after the {}".format(
             middle_text,
-            self.int_now_td_years,
+            self.now_td_years,
             now_text,
-            self.int_then_td_years,
+            self.then_td_years,
             self.long_ago.legendstr
         )
+        logging.debug(verbose_text)
+        return verbose_text
 
     def __repr__(self):
         return """TimeGhost--
