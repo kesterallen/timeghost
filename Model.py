@@ -249,7 +249,7 @@ class TimeGhost(object):
 
     @property
     def now_td_years(self):
-        return self.now_td().days / 365.25
+        return float(self.now_td().days) / 365.25
 
     def then_td(self):
         timedelta = self.middle - self.long_ago
@@ -261,7 +261,7 @@ class TimeGhost(object):
 
     @property
     def then_td_years(self):
-        return self.then_td().days / 365.25
+        return float(self.then_td().days) / 365.25
 
     def find_best_long_ago(self, get_earliest=False):
         """Return the best long_ago event based on self.middle and self.now."""
@@ -342,24 +342,25 @@ class TimeGhost(object):
     def verbose(self):
         logging.debug("Self.middle.description: {}".format(self.middle.description))
         if self.middle.description == 'Your birthday':
-          middle_text = "Your birthday"
-          now_text = "now"
+          middle = "Your birthday"
+          now = "now"
         else:
-          middle_text = "The {}".format(self.middle.legendstr)
-          now_text = "the {}".format(self.now.legendstr)
+          middle = "The {}".format(self.middle.legendstr)
+          now = "{}".format(self.now.legendstr)
 
-        verbose_text = "{} is {:.1f} years before {} but only {:.1f} years after the {}".format(
-            middle_text,
-            self.now_td_years,
-            now_text,
-            self.then_td_years,
-            self.long_ago.legendstr
+        is_same_year = self.int_now_td_years == self.int_then_td_years
+        year_fmt = ".1f" if is_same_year else ".0f"
+
+        tmpl = (
+            "{0} is {1.now_td_years:" + year_fmt + "} years before {2} "
+            "but only {1.then_td_years:" + year_fmt + "} years after "
+            "the {1.long_ago.legendstr}"
         )
-        logging.debug(verbose_text)
-        return verbose_text
+        text = tmpl.format(middle, self, now)
+        return text
 
     def __repr__(self):
-        return """TimeGhost--
+        eturn """TimeGhost--
     now: {0.now};
     middle: {0.middle};
     long_ago: {0.long_ago}""".format(self)
