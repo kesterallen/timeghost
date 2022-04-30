@@ -360,7 +360,7 @@ class TimeGhost(object):
         return text
 
     def __repr__(self):
-        eturn """TimeGhost--
+        return """TimeGhost--
     now: {0.now};
     middle: {0.middle};
     long_ago: {0.long_ago}""".format(self)

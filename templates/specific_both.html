@@ -6,7 +6,7 @@
     function populate_long_ago() {
       var middle_event_key = $('#middle').find(':selected').val();
 
-      // When a middle is selected, fill the long_ago select with things than it
+      // When a middle is selected, fill the long_ago select with appropriate events
       //
       $.ajax({
         type: 'POST',
@@ -41,7 +41,9 @@
       <select id="middle" name="middle" onchange="populate_long_ago()">
         <option value="2015-01-01">Select a middle event!</option>
         {% for event in events %}
-          <option value="{{event.key.urlsafe()}}">{{event.description}} ({{event.date_ymd}})</option>
+          <option value="{{event.key.urlsafe()}}">
+            {{event.description}} ({{event.date_ymd}})
+          </option>
         {% endfor %}
       </select>
       <select id="long_ago" name="long_ago" onchange="this.form.submit()">
