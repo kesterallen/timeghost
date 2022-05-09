@@ -237,7 +237,7 @@ class TimeGhost(object):
     def now_td(self, factor=None):
         """Get the timedelta between self.now and self.middle, optionally
         scaled by "factor"."""
-        timedelta = self.now - self.middle
+        timedelta = self.now.date - self.middle.date
         if factor:
             upper_edge = timedelta.days * factor
             timedelta = datetime.timedelta(days=upper_edge)
@@ -249,11 +249,11 @@ class TimeGhost(object):
 
     @property
     def now_td_years(self):
-        return float(self.now_td().days) / 365.25
+        return float(self.now_td.days) / 365.25
 
     @property
     def then_td(self):
-        timedelta = self.middle - self.long_ago
+        timedelta = self.middle.date - self.long_ago.date
         return timedelta
 
     @property
@@ -327,7 +327,8 @@ class TimeGhost(object):
 
     @property
     def true_since(self):
-        return self.middle + self.then_td
+        """The date that this timeghost first was true."""
+        return self.middle.date + self.then_td
 
     @property
     def factoid(self):
@@ -359,10 +360,11 @@ class TimeGhost(object):
         tmpl = (
             "{0} is {1.now_td_years:" + year_fmt + "} years before {2} "
             "but only {1.then_td_years:" + year_fmt + "} years after "
-            "the {1.long_ago.legendstr}. " +
-            "<br/>This has been true since {1.true_since}"
+            "the {1.long_ago.legendstr}."
         )
+        logging.debug("outputtext template is {}".format(tmpl))
         text = tmpl.format(middle, self, now)
+        logging.debug("outputtext is {}".format(text))
         return text
 
     def __repr__(self):
