@@ -133,7 +133,7 @@ class Event(ndb.Model):
         """
         event = Event.get_from_key_or_date(middle_kod)
         timeghost = TimeGhost(now=now, middle=event)
-        earliest_date = event.date - timeghost.now_td()
+        earliest_date = event.date - timeghost.now_td
 
         query = Event.query(
                      ).filter(Event.date < event.date
@@ -234,14 +234,16 @@ class TimeGhost(object):
         self.display_prefix = display_prefix
 
 
-    def now_td(self, factor=None):
-        """Get the timedelta between self.now and self.middle, optionally
-        scaled by "factor"."""
-        timedelta = self.now.date - self.middle.date
-        if factor:
-            upper_edge = timedelta.days * factor
-            timedelta = datetime.timedelta(days=upper_edge)
+    def now_td_scaled(self, factor):
+        """Get the timedelta between self.now and self.middle, scaled by "factor"."""
+        upper_edge = self.now_td.days * factor
+        timedelta = datetime.timedelta(days=upper_edge)
         return timedelta
+
+    @property
+    def now_td(self, factor=None):
+        """Get the timedelta between self.now and self.middle"""
+        return self.now.date - self.middle.date
 
     @property
     def int_now_td_years(self):
@@ -267,8 +269,8 @@ class TimeGhost(object):
     def find_best_long_ago(self, get_earliest=False):
         """Return the best long_ago event based on self.middle and self.now."""
 
-        wanted_date_earliest = self.middle.date - self.now_td()
-        wanted_date_latest = self.middle.date - self.now_td(TimeGhost.TIME_RANGE)
+        wanted_date_earliest = self.middle.date - self.now_td
+        wanted_date_latest = self.middle.date - self.now_td_scaled(TimeGhost.TIME_RANGE)
 
         events = Event.query().filter(Event.date > wanted_date_earliest
                              ).filter(Event.date < self.middle.date
@@ -362,9 +364,7 @@ class TimeGhost(object):
             "but only {1.then_td_years:" + year_fmt + "} years after "
             "the {1.long_ago.legendstr}."
         )
-        logging.debug("outputtext template is {}".format(tmpl))
         text = tmpl.format(middle, self, now)
-        logging.debug("outputtext is {}".format(text))
         return text
 
     def __repr__(self):
