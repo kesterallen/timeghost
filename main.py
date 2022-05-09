@@ -363,7 +363,6 @@ def fast_timeghost_server(middle_date_str=None, now_date_str=None):
             middle = Event.build(date_str=middle_date_str)
 
         timeghost = TimeGhostFactory.build(now=now, middle=middle)
-        logging.debug("output timeghost: %s", timeghost)
 
         return render_template('timeghost.html', timeghost=timeghost)
     except TimeGhostError as err:
