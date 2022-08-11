@@ -1,16 +1,17 @@
-
 import csv
 import logging
 import os
 
 from Model import Event, TimeGhost, TimeGhostError
 
-EVENTS_FILE = 'events.csv'
+EVENTS_FILE = "events.csv"
+
 
 class EventSeeder(object):
     """
     Parse filename to create new Events. Existing Events are not duplicated.
     """
+
     @classmethod
     def seed(cls, filename=None):
         """Add Events which don't already exist in the database."""
@@ -25,19 +26,20 @@ class EventSeeder(object):
                 date = row[0]
                 desc = row[1]
                 event = Event.build(date_str=date, description=desc)
-                exists = Event.query(Event.description ==
-                                     event.description).get()
+                exists = Event.query(Event.description == event.description).get()
                 if not exists:
                     event.put()
                     events.append(event)
 
         return events
 
+
 class TimeGhostFactory(object):
     """
     Create TimeGhost objects from triplets of events, or generate a complete
     TimeGhost based on a partial TimeGhost.
     """
+
     @classmethod
     def build(cls, now=None, middle=None, long_ago=None, get_earliest=False):
         """
@@ -56,19 +58,24 @@ class TimeGhostFactory(object):
         if timeghost.middle is None:
             timeghost.middle = Event.get_random()
         # Timeghost for now and given middle, no long_ago
-        elif timeghost.now is not None and \
-             timeghost.middle is not None and \
-             timeghost.long_ago is None:
+        elif (
+            timeghost.now is not None
+            and timeghost.middle is not None
+            and timeghost.long_ago is None
+        ):
             pass
         # Fully specified timeghost. Just return it.
-        elif timeghost.now is not None and \
-             timeghost.middle is not None and \
-             timeghost.long_ago is not None:
+        elif (
+            timeghost.now is not None
+            and timeghost.middle is not None
+            and timeghost.long_ago is not None
+        ):
             return timeghost
         # Otherwise error
         else:
             raise TimeGhostError(
-                "bad case in TimeGhostFactory.build for {}".format(timeghost))
+                "bad case in TimeGhostFactory.build for {}".format(timeghost)
+            )
 
         try:
             long_ago = timeghost.find_best_long_ago(get_earliest)
