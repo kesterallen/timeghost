@@ -133,7 +133,7 @@ class Event(ndb.Model):
         """
         event = Event.get_from_key_or_date(middle_kod)
         timeghost = TimeGhost(now=now, middle=event)
-        earliest_date = event.date - timeghost.now_td
+        earliest_date = event.date - timeghost.now_td()
 
         query = Event.query(
                      ).filter(Event.date < event.date
@@ -234,32 +234,46 @@ class TimeGhost(object):
         self.display_prefix = display_prefix
 
 
-    def now_td_scaled(self, factor):
-        """Get the timedelta between self.now and self.middle, scaled by "factor"."""
-        upper_edge = self.now_td.days * factor
-        timedelta = datetime.timedelta(days=upper_edge)
-        return timedelta
-
-    @property
     def now_td(self, factor=None):
         """Get the timedelta between self.now and self.middle"""
         return self.now.date - self.middle.date
 
-    @property
-    def int_now_td_years(self):
-        return int(self.now_td_years)
-
-    @property
-    def now_td_years(self):
-        return float(self.now_td.days) / 365.25
-
-    @property
-    def then_td(self):
-        timedelta = self.middle.date - self.long_ago.date
+    def now_td_scaled(self, factor):
+        """Get the timedelta between self.now and self.middle, scaled by "factor"."""
+        upper_edge = self.now_td().days * factor
+        timedelta = datetime.timedelta(days=upper_edge)
         return timedelta
 
     @property
-    def int_then_td_years(self):
+    def now_td_text(self):
+        return "{} years, {} days".format(
+            self.now_td_years_int,
+            int(365.25 * (self.now_td_years - self.now_td_years_int)),
+        )
+
+    @property
+    def now_td_years(self):
+        return float(self.now_td().days) / 365.25
+
+    @property
+    def now_td_years_int(self):
+        return int(self.now_td_years)
+
+    @property
+    def then_td(self):
+        """Get the timedelta between self.middle and self.long_ago"""
+        return self.middle.date - self.long_ago.date
+
+    @property
+    def then_td_text(self):
+        """Get the timedelta between self.middle and self.long_ago, scaled by "factor" """
+        return "{} years, {} days".format(
+            self.then_td_years_int,
+            int(365.25 * (self.then_td_years - self.then_td_years_int)),
+        )
+
+    @property
+    def then_td_years_int(self):
         return int(self.then_td_years)
 
     @property
@@ -269,7 +283,7 @@ class TimeGhost(object):
     def find_best_long_ago(self, get_earliest=False):
         """Return the best long_ago event based on self.middle and self.now."""
 
-        wanted_date_earliest = self.middle.date - self.now_td
+        wanted_date_earliest = self.middle.date - self.now_td()
         wanted_date_latest = self.middle.date - self.now_td_scaled(TimeGhost.TIME_RANGE)
 
         events = Event.query().filter(Event.date > wanted_date_earliest
@@ -348,24 +362,22 @@ class TimeGhost(object):
 
     @property
     def verbose(self):
-        logging.debug("Self.middle.description: {}".format(self.middle.description))
-        if self.middle.description == 'Your birthday':
-          middle = "Your birthday"
-          now = "now"
+        if self.middle.description == "Your birthday":
+            middle = "Your birthday"
+            now = "now"
         else:
-          middle = "The {}".format(self.middle.legendstr)
-          now = "{}".format(self.now.legendstr)
+            middle = "The {}".format(self.middle.legendstr)
+            now = "{}".format(self.now.legendstr)
 
-        is_same_year = self.int_now_td_years == self.int_then_td_years
-        year_fmt = ".1f" if is_same_year else ".0f"
+        text_ = [middle, " is ", None, " before ", now, " but only ", None, " after the ", self.long_ago.legendstr, "."]
+        if self.now_td_years_int == self.then_td_years_int:
+            text_[2] = self.now_td_text
+            text_[6] = self.then_td_text
+        else:
+            text_[2] = "{} years".format(self.now_td_years_int)
+            text_[6] = "{} years".format(self.then_td_years_int)
 
-        tmpl = (
-            "{0} is {1.now_td_years:" + year_fmt + "} years before {2} "
-            "but only {1.then_td_years:" + year_fmt + "} years after "
-            "the {1.long_ago.legendstr}."
-        )
-        text = tmpl.format(middle, self, now)
-        return text
+        return "".join(text_)
 
     def __repr__(self):
         return """TimeGhost--
