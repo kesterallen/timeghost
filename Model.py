@@ -133,7 +133,7 @@ class Event(ndb.Model):
         """
         event = Event.get_from_key_or_date(middle_kod)
         timeghost = TimeGhost(now=now, middle=event)
-        earliest_date = event.date - timeghost.now_td()
+        earliest_date = event.date - timeghost.now_td
 
         query = Event.query(
                      ).filter(Event.date < event.date
@@ -233,58 +233,74 @@ class TimeGhost(object):
 
         self.display_prefix = display_prefix
 
-
-    def now_td(self, factor=None):
+    @property
+    def now_td(self):
         """Get the timedelta between self.now and self.middle"""
         return self.now.date - self.middle.date
-
-    def now_td_scaled(self, factor):
-        """Get the timedelta between self.now and self.middle, scaled by "factor"."""
-        upper_edge = self.now_td().days * factor
-        timedelta = datetime.timedelta(days=upper_edge)
-        return timedelta
-
-    @property
-    def now_td_text(self):
-        return "{} years, {} days".format(
-            self.now_td_years_int,
-            int(365.25 * (self.now_td_years - self.now_td_years_int)),
-        )
-
-    @property
-    def now_td_years(self):
-        return float(self.now_td().days) / 365.25
-
-    @property
-    def now_td_years_int(self):
-        return int(self.now_td_years)
 
     @property
     def then_td(self):
         """Get the timedelta between self.middle and self.long_ago"""
         return self.middle.date - self.long_ago.date
 
-    @property
-    def then_td_text(self):
-        """Get the timedelta between self.middle and self.long_ago, scaled by "factor" """
-        return "{} years, {} days".format(
-            self.then_td_years_int,
-            int(365.25 * (self.then_td_years - self.then_td_years_int)),
-        )
+
+    def td_years(self, td):
+        return float(td.days) / 365.25
 
     @property
-    def then_td_years_int(self):
-        return int(self.then_td_years)
+    def now_td_years(self):
+        return self.td_years(self.now_td)
 
     @property
     def then_td_years(self):
-        return float(self.then_td.days) / 365.25
+        return self.td_years(self.then_td)
+
+
+    def td_years_int(self, td):
+        return int(self.td_years(td))
+
+    @property
+    def now_td_years_int(self):
+        return self.td_years_int(self.now_td)
+
+    @property
+    def then_td_years_int(self):
+        return self.td_years_int(self.then_td)
+
+
+    def td_text(self, td):
+        years = self.td_years_int(td)
+        days = int(365.25 * (self.td_years(td) - self.td_years_int(td)))
+
+        if td.days == 0:
+            return "{} years".format(years)
+        else:
+            return "{} years, {} days".format(years, days)
+
+    @property
+    def now_td_text(self):
+        return self.td_text(self.now_td)
+
+    @property
+    def then_td_text(self):
+        return self.td_text(self.then_td)
+
+
+    @property
+    def same_years(self):
+        return self.now_td_years_int == self.then_td_years_int
+
+    def _now_td_scaled(self, factor):
+        """Get the timedelta between self.now and self.middle, scaled by "factor"."""
+        upper_edge = self.now_td.days * factor
+        timedelta = datetime.timedelta(days=upper_edge)
+        return timedelta
 
     def find_best_long_ago(self, get_earliest=False):
         """Return the best long_ago event based on self.middle and self.now."""
 
-        wanted_date_earliest = self.middle.date - self.now_td()
-        wanted_date_latest = self.middle.date - self.now_td_scaled(TimeGhost.TIME_RANGE)
+        wanted_date_earliest = self.middle.date - self.now_td
+        wanted_date_latest = self.middle.date - self._now_td_scaled(TimeGhost.TIME_RANGE)
 
         events = Event.query().filter(Event.date > wanted_date_earliest
                              ).filter(Event.date < self.middle.date
@@ -370,7 +386,7 @@ class TimeGhost(object):
             now = "{}".format(self.now.legendstr)
 
         text_ = [middle, " is ", None, " before ", now, " but only ", None, " after the ", self.long_ago.legendstr, "."]
-        if self.now_td_years_int == self.then_td_years_int:
+        if self.same_years:
             text_[2] = self.now_td_text
             text_[6] = self.then_td_text
         else:
