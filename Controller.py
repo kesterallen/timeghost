@@ -1,5 +1,5 @@
+
 import csv
-import logging
 import os
 
 from Model import Event, TimeGhost, TimeGhostError
