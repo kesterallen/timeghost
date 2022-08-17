@@ -141,7 +141,7 @@ class Event(ndb.Model):
         """
         event = Event.get_from_key_or_date(middle_kod)
         timeghost = TimeGhost(now=now, middle=event)
-        earliest_date = event.date - timeghost.now_td
+        earliest_date = event.date - timeghost.now_td.td
 
         query = Event.query(
                      ).filter(Event.date < event.date
@@ -211,6 +211,28 @@ class Event(ndb.Model):
     def date_ymd(self):
         return self.date.isoformat().strip().split("T")[0]
 
+
+class TimeGhostDelta(object):
+    def __init__(self, beginning, ending):
+        self.td = beginning.date - ending.date
+
+    @property
+    def years(self):
+        return float(self.td.days) / DAYS_IN_YEAR
+
+    @property
+    def years_int(self):
+        return int(self.years)
+
+    @property
+    def days(self):
+        return DAYS_IN_YEAR * (self.years - self.years_int)
+
+    @property
+    def days_int(self):
+        return int(self.days)
+
+
 class TimeGhost(object):
 
     TIME_RANGE = 0.5
@@ -230,7 +252,7 @@ class TimeGhost(object):
                 older = order_test[i]
                 if older > newer:
                     raise TimeGhostError(
-                            "bad event ordering for timeghost %s" % self)
+                            "bad event ordering for timeghost {}".format(self))
 
     def __init__(self, now=None, middle=None, long_ago=None, display_prefix="The "):
         self.now = now
@@ -241,45 +263,23 @@ class TimeGhost(object):
 
         self.display_prefix = display_prefix
 
-        # time deltas for now->middle:
+        # time deltas for now->middle and middle->long ago:
         if self.now and self.middle:
-            self.now_td = self.now.date - self.middle.date
-            self.now_td_years = self.td_years(self.now_td)
-            self.now_td_years_int = self.td_years_int(self.now_td)
-            self.now_td_days = self.td_days(self.now_td)
-            self.now_td_days_int = self.td_days_int(self.now_td)
-
-        # time deltas for middle->long ago:
+            self.now_td = TimeGhostDelta(self.now, self.middle)
         if self.middle and self.long_ago:
-            self.then_td = self.middle.date - self.long_ago.date
-            self.then_td_years = self.td_years(self.then_td)
-            self.then_td_years_int = self.td_years_int(self.then_td)
-            self.then_td_days = self.td_days(self.then_td)
-            self.then_td_days_int = self.td_days_int(self.then_td)
+            self.then_td = TimeGhostDelta(self.middle, self.long_ago)
 
-    def td_years(self, td):
-        return float(td.days) / DAYS_IN_YEAR
-
-    def td_years_int(self, td):
-        return int(self.td_years(td))
-
-    def td_days(self, td):
-        return DAYS_IN_YEAR * (self.td_years(td) - self.td_years_int(td))
-
-    def td_days_int(self, td):
-        return int(self.td_days(td))
-
-    def _now_td_scaled(self, factor):
+    def scaled_timedelta(self, factor):
         """Get the timedelta between self.now and self.middle, scaled by "factor"."""
-        upper_edge = self.now_td.days * factor
+        upper_edge = self.now_td.td.days * factor
         timedelta = datetime.timedelta(days=upper_edge)
         return timedelta
 
     def find_best_long_ago(self, get_earliest=False):
         """Return the best long_ago event based on self.middle and self.now."""
 
-        wanted_date_earliest = self.middle.date - self.now_td
-        wanted_date_latest = self.middle.date - self._now_td_scaled(TimeGhost.TIME_RANGE)
+        wanted_date_earliest = self.middle.date - self.now_td.td
+        wanted_date_latest = self.middle.date - self.scaled_timedelta(TimeGhost.TIME_RANGE)
 
         events = Event.query().filter(Event.date > wanted_date_earliest
                              ).filter(Event.date < self.middle.date
@@ -339,7 +339,7 @@ class TimeGhost(object):
     @property
     def true_since(self):
         """The date that this timeghost first was true."""
-        return self.middle.date + self.then_td
+        return self.middle.date + self.then_td.td
 
     @property
     def factoid_list(self):
@@ -359,32 +359,29 @@ class TimeGhost(object):
             output = "{}{} is closer to the {} than {}".format(*self.factoid_list)
         except AttributeError as err:
             print err
-            output = "This timeghost is incomplete (%s)" % err
+            output = "This timeghost is incomplete ({})".format(err)
         return output
 
     @property
     def verbose(self):
         if self.middle.description == "Your birthday":
-            middle = "Your birthday"
-            now = "now"
+            middle = "Your birthday is "
+            now = "before now"
         else:
-            middle = self.display_prefix + self.middle.legendstr
-            now = self.now.legendstr
+            middle = self.display_prefix + self.middle.legendstr + " is "
+            now = "before " + self.now.legendstr
 
-        if self.now_td_years_int != self.then_td_years_int:
-            # The time deltas are more than a year apart, just print their year values
-            td_now_txt = "{} years".format(self.now_td_years_int)
-            td_then_txt = "{} years".format(self.then_td_years_int)
-        elif self.now_td_days_int != self.then_td_days_int:
-            # The difference between the length of the time deltas is less than a year but more than a day; print year + int(days)
-            td_now_txt = "{} years, {} days".format(self.now_td_years_int, self.now_td_days_int)
-            td_then_txt = "{} years, {} days".format(self.then_td_years_int, self.then_td_days_int)
+        # a) the time deltas are more than a year apart, print only their year values,
+        # b) the difference between the length of the time deltas is less than a year but more than a day, print "year int(days)",
+        # c) otherwise, the difference between the length of the time deltas is less than a day, print "year float(days)"
+        if self.now_td.years_int != self.then_td.years_int:
+            tmpl = "{0.years_int} years"
+        elif self.now_td.days_int != self.then_td.days_int:
+            tmpl = "{0.years_int} years, {0.days_int} days"
         else:
-            # The difference between the length of the time deltas is less than a day
-            td_now_txt = "{} years, {:.1f} days".format(self.now_td_years_int, self.now_td_days)
-            td_then_txt = "{} years, {:.1f} days".format(self.then_td_years_int, self.then_td_days)
+            tmpl = "{0.years_int} years, {0.days:.1f} days"
 
-        text_ = [middle, " is ", td_now_txt, " before ", now, " but only ", td_then_txt, " after the ", self.long_ago.legendstr, "."]
+        text_ = [middle, tmpl.format(self.now_td), now, " but only ", tmpl.format(self.then_td), " after the ", self.long_ago.legendstr, "."]
         return "".join(text_)
 
     def __repr__(self):
