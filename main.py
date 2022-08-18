@@ -196,11 +196,9 @@ def form_for_now_middle(fieldname, form, description, do_events=False, get_earli
     try:
         # Render requested timeghost ('form' input seems to be ignored):
         if request.method == "POST":
-            now = Event.now()
             middle_key_or_date = request.form[fieldname]
             middle = Event.get_from_key_or_date(middle_key_or_date, description)
-
-            timeghost = TimeGhostFactory.build(now=now, middle=middle, get_earliest=get_earliest)
+            timeghost = TimeGhostFactory.build(middle=middle, get_earliest=get_earliest)
             if not do_events:
                 timeghost.display_prefix = ""
 
@@ -252,12 +250,11 @@ def chosen_event_server():
 # Specific Event, timeghost with oldest long_ago, middle specified with URL
 @app.route('/sw/<short_url>')
 def earliest_event_by_short_url_server(short_url):
-    now = Event.now()
     try:
         middle = Event.get_from_key_or_date(short_url)
     except TimeGhostError as err:
         raise TimeGhostError("timeghost doesn't know your birthday")
-    timeghost = TimeGhostFactory.build(now=now, middle=middle, get_earliest=True)
+    timeghost = TimeGhostFactory.build(middle=middle, get_earliest=True)
     return render_template('timeghost.html', timeghost=timeghost)
 
 # Specific Event, timeghost with oldest long_ago
@@ -275,10 +272,9 @@ def earliest_chosen_event_server():
 @app.route('/fc', methods=['POST', 'GET'])
 def fight_club_server():
     """ Generate a timeghost for the release of Fight Club """
-    now = Event.now()
     fight_club = Event.get_from_key_or_date(
         'ag9zfnRpbWVnaG9zdC1hcHByEgsSBUV2ZW50GICAgICG7IcKDA')
-    timeghost = TimeGhostFactory.build(now=now, middle=fight_club)
+    timeghost = TimeGhostFactory.build(middle=fight_club)
     return render_template('fight_club.html', timeghost=timeghost)
 
 # Birthday
@@ -294,7 +290,7 @@ def birthday_server(birthday_date=None):
 
     if birthday_date:
         middle = Event.get_from_key_or_date(birthday_date)
-        timeghost = TimeGhostFactory.build(now=Event.now(), middle=middle)
+        timeghost = TimeGhostFactory.build(middle=middle)
         return render_template('timeghost.html', timeghost=timeghost)
     else:
         return form_for_now_middle(fieldname, form, description)
@@ -318,8 +314,8 @@ def permalink_server(middle_key_urlsafe, long_ago_key_urlsafe=None):
         if long_ago_key_urlsafe is not None:
             long_ago = Event.get_from_key_or_date(long_ago_key_urlsafe)
 
-        now = Event.now()
-        tg = TimeGhostFactory.build(now=now, middle=middle, long_ago=long_ago)
+
+        tg = TimeGhostFactory.build(middle=middle, long_ago=long_ago)
         return render_template('timeghost.html', timeghost=tg)
     except TimeGhostError as err:
         return render_template('error.html', err=err), 404
@@ -327,9 +323,8 @@ def permalink_server(middle_key_urlsafe, long_ago_key_urlsafe=None):
 @app.route('/tweet')
 def timeghost_json():
     """JSON page: generate a random Timeghost and return it as a JSON object"""
-    now = Event.now()
     middle = Event.get_random(before=now)
-    tg = TimeGhostFactory.build(now=now, middle=middle)
+    tg = TimeGhostFactory.build(middle=middle)
     tg_dict = dict(
         factoid=tg.factoid,
         permalink=tg.permalink_fully_qualified,
@@ -362,7 +357,7 @@ def fast_timeghost_server(middle_date_str=None, now_date_str=None):
         else:
             middle = Event.build(date_str=middle_date_str)
 
-        timeghost = TimeGhostFactory.build(now=now, middle=middle)
+        timeghost = TimeGhostFactory.build(middle=middle)
 
         return render_template('timeghost.html', timeghost=timeghost)
     except TimeGhostError as err:

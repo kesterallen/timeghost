@@ -271,7 +271,7 @@ class TimeGhost(object):
 
     def scaled_timedelta(self, factor):
         """Get the timedelta between self.now and self.middle, scaled by "factor"."""
-        upper_edge = self.now_td.td.days * factor
+        upper_edge = self.now_td.days * factor
         timedelta = datetime.timedelta(days=upper_edge)
         return timedelta
 
@@ -358,7 +358,6 @@ class TimeGhost(object):
         try:
             output = "{}{} is closer to the {} than {}".format(*self.factoid_list)
         except AttributeError as err:
-            print err
             output = "This timeghost is incomplete ({})".format(err)
         return output
 
@@ -371,15 +370,19 @@ class TimeGhost(object):
             middle = self.display_prefix + self.middle.legendstr + " is "
             now = "before " + self.now.legendstr
 
-        # a) the time deltas are more than a year apart, print only their year values,
-        # b) the difference between the length of the time deltas is less than a year but more than a day, print "year int(days)",
-        # c) otherwise, the difference between the length of the time deltas is less than a day, print "year float(days)"
+        # a) the time deltas are more than a year apart, print only the year
+        #    values,
+        # b) the difference between the length of the time deltas is less than
+        #    a year but more than a day, print "year int(days)",
+        # c) otherwise, the difference between the length of the time deltas is
+        #    less than a day, print "year float(days)"
+        tmpl = "{0.years_int} years"
         if self.now_td.years_int != self.then_td.years_int:
-            tmpl = "{0.years_int} years"
+            pass
         elif self.now_td.days_int != self.then_td.days_int:
-            tmpl = "{0.years_int} years, {0.days_int} days"
+            tmpl += ", {0.days_int} days"
         else:
-            tmpl = "{0.years_int} years, {0.days:.1f} days"
+            tmpl += ", {0.days:.1f} days"
 
         text_ = [middle, tmpl.format(self.now_td), now, " but only ", tmpl.format(self.then_td), " after the ", self.long_ago.legendstr, "."]
         return "".join(text_)

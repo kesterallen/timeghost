@@ -51,36 +51,24 @@ class TimeGhostFactory(object):
 
     @classmethod
     def build_from_timeghost(cls, timeghost, get_earliest=False):
-        """Return a completed TimeGhost based on the partial TimeGhost
-        request."""
+        """
+        Return a completed TimeGhost based on the partial TimeGhost request.
+        """
+        # Set the now Event if not specified:
+        if timeghost.now is None:
+            timeghost.now = Event.now()
 
-        # Timeghost between now and a random event
+        # Generate a middle Event if not specified:
         if timeghost.middle is None:
             timeghost.middle = Event.get_random()
-        # Timeghost for now and given middle, no long_ago
-        elif (
-            timeghost.now is not None
-            and timeghost.middle is not None
-            and timeghost.long_ago is None
-        ):
-            pass
-        # Fully specified timeghost. Just return it.
-        elif (
-            timeghost.now is not None
-            and timeghost.middle is not None
-            and timeghost.long_ago is not None
-        ):
-            return timeghost
-        # Otherwise error
-        else:
-            raise TimeGhostError(
-                "bad case in TimeGhostFactory.build for {}".format(timeghost)
-            )
 
-        try:
-            long_ago = timeghost.find_best_long_ago(get_earliest)
-        except TimeGhostError:
-            long_ago = Event.get_earliest()
+        # Generate a long_ago Event if not specified:
+        if timeghost.long_ago is None:
+            try:
+                timeghost.long_ago = timeghost.find_best_long_ago(get_earliest)
+            except TimeGhostError:
+                timeghost.long_ago = Event.get_earliest()
 
-        output_timeghost = TimeGhost(timeghost.now, timeghost.middle, long_ago)
-        return output_timeghost
+        # Return a new instance to insure the init validation is run properlhy:
+        return TimeGhost(timeghost.now, timeghost.middle, timeghost.long_ago)
+
