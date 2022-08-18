@@ -57,10 +57,12 @@ class TimeGhostFactory(object):
         # Set the now Event if not specified:
         if timeghost.now is None:
             timeghost.now = Event.now()
+            timeghost._make_tds()
 
         # Generate a middle Event if not specified:
         if timeghost.middle is None:
             timeghost.middle = Event.get_random()
+            timeghost._make_tds()
 
         # Generate a long_ago Event if not specified:
         if timeghost.long_ago is None:

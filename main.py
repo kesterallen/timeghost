@@ -323,7 +323,7 @@ def permalink_server(middle_key_urlsafe, long_ago_key_urlsafe=None):
 @app.route('/tweet')
 def timeghost_json():
     """JSON page: generate a random Timeghost and return it as a JSON object"""
-    middle = Event.get_random(before=now)
+    middle = Event.get_random(before=Event.now())
     tg = TimeGhostFactory.build(middle=middle)
     tg_dict = dict(
         factoid=tg.factoid,

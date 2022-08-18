@@ -68,19 +68,19 @@ class Event(ndb.Model):
         return date
 
     @classmethod
-    def build(cls, date_str,
-                   description=None,
-                   created_on=None,
-                   created_by=None,
-                   approved=False):
+    def build(
+        cls, date_str, description=None, created_on=None, created_by=None, approved=False
+    ):
         date = Event._parse_date_str(date_str)
         if description is None:
             description = "date '{}'".format(date_str)
-        event = Event(description=description,
-                      date=date,
-                      created_on=created_on,
-                      created_by=created_by,
-                      approved=approved)
+        event = Event(
+            description=description,
+            date=date,
+            created_on=created_on,
+            created_by=created_by,
+            approved=approved,
+        )
         event.set_short_url()
         return event
 
@@ -112,25 +112,35 @@ class Event(ndb.Model):
         return event
 
     @classmethod
+    def approved_query(cls):
+        query = Event.query().filter(Event.approved == True)
+        return query
+
+    @classmethod
+    def between_query(cls, earlier_than, later_than):
+        query = (
+            Event.approved_query()
+            .filter(Event.date < earlier_than)
+            .filter(Event.date > later_than)
+        )
+        return query
+
+    @classmethod
     def get_random(cls, before=None):
         """Inputs: before - an Event """
         earliest = Event.get_earliest()
-        events = Event.query(
-                     ).filter(Event.date < before.date
-                     ).filter(Event.date > earliest.date
-                     ).filter(Event.approved == True
-                     ).fetch()
+        events = Event.between_query(earlier_than=before.date, later_than=earliest.date).fetch()
         event = random.choice(events)
         return event
 
     @classmethod
     def get_latest(cls):
-        event = Event.query().filter(Event.approved == True).order(-Event.date).get()
+        event = Event.approved_query().order(-Event.date).get()
         return event
 
     @classmethod
     def get_earliest(cls):
-        event = Event.query().filter(Event.approved == True).order(Event.date).get()
+        event = Event.approved_query().order(Event.date).get()
         return event
 
     @classmethod
@@ -143,10 +153,7 @@ class Event(ndb.Model):
         timeghost = TimeGhost(now=now, middle=event)
         earliest_date = event.date - timeghost.now_td.td
 
-        query = Event.query(
-                     ).filter(Event.date < event.date
-                     ).filter(Event.date > earliest_date
-                     ).filter(Event.approved == True)
+        query = Event.between_query(earlier_than=event.date, later_than=earliest_date)
         if sort_asc:
             query = query.order(-Event.date)
         else:
@@ -159,16 +166,9 @@ class Event(ndb.Model):
     def get_earlier_than(cls, key_or_date=None):
         if key_or_date:
             event = Event.get_from_key_or_date(key_or_date)
-            events = Event.query(
-                         ).filter(Event.date < event.date
-                         ).filter(Event.approved == True
-                         ).order(-Event.date
-                         ).fetch()
+            events = Event.approved_query().filter(Event.date < event.date).order(-Event.date).fetch()
         else:
-            events = Event.query(
-                         ).filter(Event.approved == True
-                         ).order(-Event.date
-                         ).fetch()
+            events = Event.approved_query().order(-Event.date).fetch()
         return events
 
     def __sub__(self, other):
@@ -254,20 +254,22 @@ class TimeGhost(object):
                     raise TimeGhostError(
                             "bad event ordering for timeghost {}".format(self))
 
-    def __init__(self, now=None, middle=None, long_ago=None, display_prefix="The "):
-        self.now = now
-        self.middle = middle
-        self.long_ago = long_ago
-
-        self._validate_event_ordering()
-
-        self.display_prefix = display_prefix
-
-        # time deltas for now->middle and middle->long ago:
+    def _make_tds(self):
+        """time deltas for now->middle and middle->long ago"""
         if self.now and self.middle:
             self.now_td = TimeGhostDelta(self.now, self.middle)
         if self.middle and self.long_ago:
             self.then_td = TimeGhostDelta(self.middle, self.long_ago)
+
+
+    def __init__(self, now=None, middle=None, long_ago=None, display_prefix="The "):
+        self.now = now
+        self.middle = middle
+        self.long_ago = long_ago
+        self.display_prefix = display_prefix
+
+        self._validate_event_ordering()
+        self._make_tds()
 
     def scaled_timedelta(self, factor):
         """Get the timedelta between self.now and self.middle, scaled by "factor"."""
@@ -281,10 +283,7 @@ class TimeGhost(object):
         wanted_date_earliest = self.middle.date - self.now_td.td
         wanted_date_latest = self.middle.date - self.scaled_timedelta(TimeGhost.TIME_RANGE)
 
-        events = Event.query().filter(Event.date > wanted_date_earliest
-                             ).filter(Event.date < self.middle.date
-                             ).filter(Event.approved == True
-                             ).order(Event.date)
+        events = Event.between_query(earlier_than=self.middle.date, later_than=wanted_date_earliest).order(Event.date)
         try:
             good_range_events = events.filter(Event.date < wanted_date_latest)
             if get_earliest:
@@ -365,10 +364,10 @@ class TimeGhost(object):
     def verbose(self):
         if self.middle.description == "Your birthday":
             middle = "Your birthday is "
-            now = "before now"
+            now = " before now"
         else:
             middle = self.display_prefix + self.middle.legendstr + " is "
-            now = "before " + self.now.legendstr
+            now = " before " + self.now.legendstr
 
         # a) the time deltas are more than a year apart, print only the year
         #    values,
