@@ -56,20 +56,19 @@ class TimeGhostFactory(object):
         """
         # Set the now Event if not specified:
         if timeghost.now is None:
-            timeghost.now = Event.now()
-            timeghost._make_tds()
+            timeghost.set(Event.now(), "now")
 
         # Generate a middle Event if not specified:
         if timeghost.middle is None:
-            timeghost.middle = Event.get_random()
-            timeghost._make_tds()
+            timeghost.set(Event.get_random(), "middle")
 
         # Generate a long_ago Event if not specified:
         if timeghost.long_ago is None:
             try:
-                timeghost.long_ago = timeghost.find_best_long_ago(get_earliest)
+                long_ago = timeghost.find_best_long_ago(get_earliest)
             except TimeGhostError:
-                timeghost.long_ago = Event.get_earliest()
+                long_ago = Event.get_earliest()
+            timeghost.set(long_ago, "long_ago")
 
         # Return a new instance to insure the init validation is run properlhy:
         return TimeGhost(timeghost.now, timeghost.middle, timeghost.long_ago)
