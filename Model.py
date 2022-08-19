@@ -55,9 +55,9 @@ class Event(ndb.Model):
     @classmethod
     def _parse_date_str(cls, date_str):
         date = None
-        for fmt in DATE_FORMATS:
+        for date_format in DATE_FORMATS:
             try:
-                date = datetime.datetime.strptime(date_str, fmt)
+                date = datetime.datetime.strptime(date_str, date_format)
                 break
             except ValueError:
                 pass
@@ -166,7 +166,12 @@ class Event(ndb.Model):
     def get_earlier_than(cls, key_or_date=None):
         if key_or_date:
             event = Event.get_from_key_or_date(key_or_date)
-            events = Event.approved_query().filter(Event.date < event.date).order(-Event.date).fetch()
+            events = (
+                Event.approved_query()
+                .filter(Event.date < event.date)
+                .order(-Event.date)
+                .fetch()
+            )
         else:
             events = Event.approved_query().order(-Event.date).fetch()
         return events
@@ -180,11 +185,11 @@ class Event(ndb.Model):
 
     def __repr__(self):
         return "{} ({}) {} ({}) {}".format(
-                self.description.encode('utf-8'),
-                self.date,
-                self.created_by,
-                self.created_on,
-                self.approved)
+            self.description.encode('utf-8'),
+            self.date,
+            self.created_by,
+            self.created_on,
+            self.approved)
 
     def set_short_url(self):
         desc = self.description.lower().replace(' ', '-')
@@ -215,6 +220,56 @@ class Event(ndb.Model):
 class TimeGhostDelta(object):
     def __init__(self, beginning, ending):
         self.td = beginning.date - ending.date
+
+    def verbose_between(self, other):
+        """
+        a) the time deltas are more than a year apart, print only the year
+           values,
+        b) the difference between the length of the time deltas is less than
+           a year but more than a day, print "year int(days)",
+        c) otherwise, the difference between the length of the time deltas is
+            less than a day, print "year float(days)"
+        """
+
+        add_days = False
+        add_fractional_days = False
+
+        txt = "{} year".format(self.years_int)
+
+        # Suffix: "years" or "year"
+        if self.years_int != 1:
+            txt += "s"
+
+        # Add number of days if the absolute value is less than 1 year, make it
+        # a fractional number if it is less than 1 day:
+        if self.years < 1:
+            add_days = True
+        if self.days < 1:
+            add_fractional_days = True
+
+        # 1) If the two time deltas have a different number of years, proceed.
+        # 2) If the two time deltas have the same number of years, but a
+        #    different number of days, print the int days:
+        # 3) If the two time deltas have the same number of years AND days,
+        #    print the float (:.1f) days:
+        if self.years_int != other.years_int:
+            pass
+        elif self.days_int != other.days_int:
+            add_days = True
+        else:
+            add_fractional_days = True
+
+        if add_days:
+            txt += ", {.days_int} day".format(self)
+        elif add_fractional_days:
+            txt += ", {.days_int:.1f} day".format(self)
+
+        # Suffix: "days" or "day"
+        if add_days or add_fractional_days:
+            if self.days_int != 1:
+                txt += "s"
+
+        return txt
 
     @property
     def years(self):
@@ -269,6 +324,21 @@ class TimeGhost(object):
         self.display_prefix = display_prefix
 
         self._validate_event_ordering()
+        self._make_tds()
+
+    def set(self, event, which_event):
+        """ 
+        Inputs: an Event object and a string of "now" "middle" or "long_ago"
+        """
+        if which_event == "now":
+            self.now = event
+        elif which_event == "middle":
+            self.middle = event
+        elif which_event == "long_ago":
+            self.long_ago = event
+        else:
+            raise TimeGhostError(
+                "The value {} isn't valid for TimeGhost.set".format(which_event))
         self._make_tds()
 
     def scaled_timedelta(self, factor):
@@ -369,21 +439,16 @@ class TimeGhost(object):
             middle = self.display_prefix + self.middle.legendstr + " is "
             now = " before " + self.now.legendstr
 
-        # a) the time deltas are more than a year apart, print only the year
-        #    values,
-        # b) the difference between the length of the time deltas is less than
-        #    a year but more than a day, print "year int(days)",
-        # c) otherwise, the difference between the length of the time deltas is
-        #    less than a day, print "year float(days)"
-        tmpl = "{0.years_int} years"
-        if self.now_td.years_int != self.then_td.years_int:
-            pass
-        elif self.now_td.days_int != self.then_td.days_int:
-            tmpl += ", {0.days_int} days"
-        else:
-            tmpl += ", {0.days:.1f} days"
-
-        text_ = [middle, tmpl.format(self.now_td), now, " but only ", tmpl.format(self.then_td), " after the ", self.long_ago.legendstr, "."]
+        text_ = [
+            middle,
+            self.now_td.verbose_between(self.then_td),
+            now,
+            " but only ",
+            self.then_td.verbose_between(self.now_td),
+            " after the ",
+            self.long_ago.legendstr,
+            "."
+        ]
         return "".join(text_)
 
     def __repr__(self):
