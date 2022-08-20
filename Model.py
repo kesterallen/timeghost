@@ -230,13 +230,11 @@ class TimeGhostDelta(object):
         c) otherwise, the difference between the length of the time deltas is
             less than a day, print "year float(days)"
         """
-
         add_days = False
         add_fractional_days = False
 
+        # E.g. "8 years" or "1 year"
         txt = "{} year".format(self.years_int)
-
-        # Suffix: "years" or "year"
         if self.years_int != 1:
             txt += "s"
 
@@ -293,21 +291,16 @@ class TimeGhost(object):
     TIME_RANGE = 0.5
 
     def _validate_event_ordering(self):
-        order_test = []
-        if self.now is not None:
-            order_test.append(self.now)
-        if self.middle is not None:
-            order_test.append(self.middle)
-        if self.long_ago is not None:
-            order_test.append(self.long_ago)
+        order_test = [e for e in [self.now, self.middle, self.long_ago] if e]
 
-        if len(order_test) > 1:
-            for i in range(1, len(order_test)):
-                newer = order_test[i-1]
-                older = order_test[i]
-                if older > newer:
-                    raise TimeGhostError(
-                            "bad event ordering for timeghost {}".format(self))
+        if len(order_test) == 0:
+            return
+
+        for i in range(1, len(order_test)):
+            newer = order_test[i-1]
+            older = order_test[i]
+            if older > newer:
+                raise TimeGhostError("bad event ordering for timeghost {}".format(self))
 
     def _make_tds(self):
         """time deltas for now->middle and middle->long ago"""
@@ -355,19 +348,21 @@ class TimeGhost(object):
 
         events = Event.between_query(earlier_than=self.middle.date, later_than=wanted_date_earliest).order(Event.date)
         try:
-            good_range_events = events.filter(Event.date < wanted_date_latest)
+            good_range_events = events.filter(Event.date < wanted_date_latest).fetch()
             if get_earliest:
-                event = good_range_events.fetch()[0]
+                event = good_range_events[0]
             else:
-                event = random.choice(good_range_events.fetch())
+                event = random.choice(good_range_events)
         except IndexError:
             try:
                 event = random.choice(events.fetch())
             except IndexError as err:
                 event = Event.get_earliest()
         except:
-            raise TimeGhostError("can't find an event between %s and %s" %
-                      (self.middle.date, wanted_date_earliest))
+            raise TimeGhostError(
+                "can't find an event between {} and {}".format(
+                    self.middle.date, wanted_date_earliest)
+            )
 
         return event
 

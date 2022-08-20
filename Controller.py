@@ -45,24 +45,17 @@ class TimeGhostFactory(object):
         """
         Create TimeGhost objects from triplets of events.
         """
-        timeghost_in = TimeGhost(now=now, middle=middle, long_ago=long_ago)
-        timeghost = TimeGhostFactory.build_from_timeghost(timeghost_in, get_earliest)
-        return timeghost
+        timeghost = TimeGhost(now=now, middle=middle, long_ago=long_ago)
 
-    @classmethod
-    def build_from_timeghost(cls, timeghost, get_earliest=False):
-        """
-        Return a completed TimeGhost based on the partial TimeGhost request.
-        """
-        # Set the now Event if not specified:
+        # Set the .now Event to "now" if not specified:
         if timeghost.now is None:
             timeghost.set(Event.now(), "now")
 
-        # Generate a middle Event if not specified:
+        # Generate a .middle Event if not specified:
         if timeghost.middle is None:
             timeghost.set(Event.get_random(), "middle")
 
-        # Generate a long_ago Event if not specified:
+        # Generate a .long_ago Event if not specified:
         if timeghost.long_ago is None:
             try:
                 long_ago = timeghost.find_best_long_ago(get_earliest)
