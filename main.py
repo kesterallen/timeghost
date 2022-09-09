@@ -188,13 +188,13 @@ def events_file_server():
     output.headers["Content-type"] = "text/csv"
     return output
 
-def form_for_now_middle(fieldname, form, description, do_events=False, get_earliest=False):
+def form_for_now_middle(fieldname, form, description, do_events=False, select_vars=None, get_earliest=False):
     """
     Render a form, or the response to the form. Pulls out the specified field
     and uses that to generate a TimeGhost.middle. TimeGhost.now is Event.now().
     """
     try:
-        # Render requested timeghost ('form' input seems to be ignored):
+        # POST: Render the response to a form (a requested timeghost):
         if request.method == "POST":
             middle_key_or_date = request.form[fieldname]
             middle = Event.get_from_key_or_date(middle_key_or_date, description)
@@ -203,12 +203,12 @@ def form_for_now_middle(fieldname, form, description, do_events=False, get_earli
                 timeghost.display_prefix = ""
 
             return render_template('timeghost.html', timeghost=timeghost)
-        # GET request; draw the form:
+        # GET: Draw the form; its HTML filename is in the "form" variable:
         else:
             events = None
             if do_events:
                 events = Event.query().order(-Event.date).fetch()
-            return render_template(form, events=events)
+            return render_template(form, events=events, **select_vars)
     except TimeGhostError as err:
         return render_template('error.html', err=err), 404
 
@@ -243,9 +243,10 @@ def chosen_event_pair():
 def chosen_event_server():
     """ Generate a timeghost for a user-selected event."""
     fieldname = 'middle'
-    form = 'specific.html'
+    form = 'specific_one.html'
     description = None
-    return form_for_now_middle(fieldname, form, description, do_events=True)
+    select_vars = dict(form_action="/s", form_legend="Pick an Event to Timeghost!", form_default_option_text="Timeghost an event!")
+    return form_for_now_middle(fieldname, form, description, do_events=True, select_vars=select_vars)
 
 # Specific Event, timeghost with oldest long_ago, middle specified with URL
 @app.route('/sw/<short_url>')
@@ -263,8 +264,9 @@ def earliest_event_by_short_url_server(short_url):
 def earliest_chosen_event_server():
     """ Generate a worst-case timeghost for a user-selected event."""
     fieldname = 'middle'
-    form = 'specific_worst.html'
-    return form_for_now_middle(fieldname, form, description=None, do_events=True, get_earliest=True)
+    form = 'specific_one.html'
+    select_vars = dict(form_action="/sw", form_legend="Pick an Event to Worst-Timeghost!", form_default_option_text="Worst-Timeghost an event!")
+    return form_for_now_middle(fieldname, form, description=None, do_events=True, select_vars=select_vars, get_earliest=True)
 
 # Fight Club, I am Jack's old movie reference
 @app.route('/jack', methods=['POST', 'GET'])
@@ -315,8 +317,8 @@ def permalink_server(middle_key_urlsafe, long_ago_key_urlsafe=None):
             long_ago = Event.get_from_key_or_date(long_ago_key_urlsafe)
 
 
-        tg = TimeGhostFactory.build(middle=middle, long_ago=long_ago)
-        return render_template('timeghost.html', timeghost=tg)
+        timeghost = TimeGhostFactory.build(middle=middle, long_ago=long_ago)
+        return render_template('timeghost.html', timeghost=timeghost)
     except TimeGhostError as err:
         return render_template('error.html', err=err), 404
 
@@ -324,12 +326,12 @@ def permalink_server(middle_key_urlsafe, long_ago_key_urlsafe=None):
 def timeghost_json():
     """JSON page: generate a random Timeghost and return it as a JSON object"""
     middle = Event.get_random(before=Event.now())
-    tg = TimeGhostFactory.build(middle=middle)
+    timeghost = TimeGhostFactory.build(middle=middle)
     tg_dict = dict(
-        factoid=tg.factoid,
-        permalink=tg.permalink_fully_qualified,
+        factoid=timeghost.factoid,
+        permalink=timeghost.permalink_fully_qualified,
         tweet="{} #timeghost {}".format(
-            tg.factoid[:110], tg.permalink_fully_qualified),
+            timeghost.factoid[:110], timeghost.permalink_fully_qualified),
     )
     return jsonify(tg_dict)
 
