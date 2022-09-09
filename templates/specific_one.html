@@ -7,11 +7,11 @@
 {% endblock %}
 
 {% block content_block %}
-  <form action="/s" method="POST">
+  <form action="{{form_action}}" method="POST">
     <fieldset>
-      <legend>Pick an Event to Timeghost</legend>
+      <legend>{{form_legend}}</legend>
       <select name="middle" onchange="this.form.submit()" class="js-example-basic-single">
-        <option value="2015-01-01">Timeghost an event!</option>
+        <option value="2015-01-01">{{form_default_option_text}}</option>
         {% for event in events %}
           <option value="{{event.key.urlsafe()}}">{{event.description}} ({{event.date_ymd}})</option>
         {% endfor %}

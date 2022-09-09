@@ -36,8 +36,7 @@ class EventSeeder(object):
 
 class TimeGhostFactory(object):
     """
-    Create TimeGhost objects from triplets of events, or generate a complete
-    TimeGhost based on a partial TimeGhost.
+    Create TimeGhost objects from triplets of events
     """
 
     @classmethod
@@ -65,4 +64,3 @@ class TimeGhostFactory(object):
 
         # Return a new instance to insure the init validation is run properlhy:
         return TimeGhost(timeghost.now, timeghost.middle, timeghost.long_ago)
-

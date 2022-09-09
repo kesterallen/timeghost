@@ -129,7 +129,7 @@ class Event(ndb.Model):
     def get_random(cls, before=None):
         """Inputs: before - an Event """
         earliest = Event.get_earliest()
-        events = Event.between_query(earlier_than=before.date, later_than=earliest.date).fetch()
+        events = Event.between_query(before.date, earliest.date).fetch()
         event = random.choice(events)
         return event
 
@@ -153,7 +153,7 @@ class Event(ndb.Model):
         timeghost = TimeGhost(now=now, middle=event)
         earliest_date = event.date - timeghost.now_td.td
 
-        query = Event.between_query(earlier_than=event.date, later_than=earliest_date)
+        query = Event.between_query(event.date, earliest_date)
         if sort_asc:
             query = query.order(-Event.date)
         else:
@@ -346,7 +346,7 @@ class TimeGhost(object):
         wanted_date_earliest = self.middle.date - self.now_td.td
         wanted_date_latest = self.middle.date - self.scaled_timedelta(TimeGhost.TIME_RANGE)
 
-        events = Event.between_query(earlier_than=self.middle.date, later_than=wanted_date_earliest).order(Event.date)
+        events = Event.between_query(self.middle.date, wanted_date_earliest).order(Event.date)
         try:
             good_range_events = events.filter(Event.date < wanted_date_latest).fetch()
             if get_earliest:
@@ -428,7 +428,7 @@ class TimeGhost(object):
     @property
     def verbose(self):
         if self.middle.description == "Your birthday":
-            middle = "Your birthday is "
+            middle = "The day of your birth is "
             now = " before now"
         else:
             middle = self.display_prefix + self.middle.legendstr + " is "
