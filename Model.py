@@ -238,12 +238,16 @@ class TimeGhostDelta(object):
         if self.years_int != 1:
             txt += "s"
 
-        # Add number of days if the absolute value is less than 1 year, make it
-        # a fractional number if it is less than 1 day:
+        # Append a number-of-days suffix if the time diff is less than one year.
+        # make the suffix a .1f float number of days is less than one.
         if self.years < 1:
             add_days = True
-        if self.days < 1:
-            add_fractional_days = True
+            if self.days < 1:
+                add_fractional_days = True
+
+        # TODO: the below if block might override the
+        # add_days/add_fractional_days values that were just set in the above
+        # if block
 
         # 1) If the two time deltas have a different number of years, proceed.
         # 2) If the two time deltas have the same number of years, but a
