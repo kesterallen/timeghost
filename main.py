@@ -208,7 +208,10 @@ def form_for_now_middle(fieldname, form, description, do_events=False, select_va
             events = None
             if do_events:
                 events = Event.query().order(-Event.date).fetch()
-            return render_template(form, events=events, **select_vars)
+            if select_vars is not None:
+                return render_template(form, events=events, **select_vars)
+            else:
+                return render_template(form, events=events)
     except TimeGhostError as err:
         return render_template('error.html', err=err), 404
 
