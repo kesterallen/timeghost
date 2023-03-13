@@ -1,7 +1,8 @@
 
 import datetime
-import random
+import json
 import logging
+import random
 from string import ascii_letters, digits
 
 from google.appengine.api import search
@@ -324,7 +325,7 @@ class TimeGhost(object):
         self._make_tds()
 
     def set(self, event, which_event):
-        """ 
+        """
         Inputs: an Event object and a string of "now" "middle" or "long_ago"
         """
         if which_event == "now":
@@ -450,9 +451,32 @@ class TimeGhost(object):
         ]
         return "".join(text_)
 
+    @property
+    def tweet_json(self):
+        tweet = dict(
+            factoid=self.factoid,
+            permalink=self.permalink_fully_qualified,
+            tweet="{} #timeghost {}".format(
+                self.factoid[:110], self.permalink_fully_qualified),
+        )
+        return json.dumps(tweet)
+
     def __repr__(self):
         return """TimeGhost--
     now: {0.now};
     middle: {0.middle};
     long_ago: {0.long_ago}""".format(self)
+
+    @property
+    def ratio(self):
+        """
+        Ratio of (now - middle) / (middle - long_ago)
+        (How lopsided is this timeghost?)
+            less than 1 is not a valid timeghost
+            1 is just barely a timeghost (middle is exactly between now and long-ago)
+            As the ratio increases the middle point moves closer to the long
+                ago, resulting in uninteresting timeghosts like "the declaration of
+                independence is closer to the boston tea party than today"
+        """
+        return self.now_td.td.total_seconds() / self.then_td.td.total_seconds()
 

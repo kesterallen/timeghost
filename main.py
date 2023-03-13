@@ -1,6 +1,6 @@
 """Main program for timeghost."""
 
-from flask import Flask, render_template, request, make_response, jsonify
+from flask import Flask, render_template, request, make_response
 from google.appengine.api import mail, search, users
 import logging
 import datetime
@@ -327,18 +327,19 @@ def permalink_server(middle_key_urlsafe, long_ago_key_urlsafe=None):
 
 @app.route('/tweet')
 def timeghost_json():
-    """JSON page: generate a random Timeghost and return it as a JSON object"""
+    """Generate a random Timeghost and return it as a JSON object"""
     middle = Event.get_random(before=Event.now())
     timeghost = TimeGhostFactory.build(middle=middle)
-    tg_dict = dict(
-        factoid=timeghost.factoid,
-        permalink=timeghost.permalink_fully_qualified,
-        tweet="{} #timeghost {}".format(
-            timeghost.factoid[:110], timeghost.permalink_fully_qualified),
-    )
-    return jsonify(tg_dict)
+    tries_left= 5
+    max_good_ratio = 7 # random guess
+    is_bad = True
+    while tries_left > 0 and is_bad:
+        tries_left -= 1
+        timeghost = TimeGhostFactory.build(middle=middle)
+        is_bad = timeghost.ratio > max_good_ratio
+    return timeghost.tweet_json
 
-# Fast Main page: generate a Timeghost and display it
+# Main page: generate a Timeghost and display it
 @app.route('/')
 @app.route('/<middle_date_str>')
 @app.route('/<middle_date_str>/<now_date_str>')
